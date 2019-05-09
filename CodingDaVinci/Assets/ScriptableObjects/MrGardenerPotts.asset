@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b85d7f0701ac4f7419bf4f8dd5002c94, type: 3}
+  m_Name: MrGardenerPotts
+  m_EditorClassIdentifier: 
+  name: Mr. Gardener Potts
+  leaderAbility: 
+  artwork: {fileID: 21300000, guid: 1fd3b0ab7590dc048a1abedb78da99e4, type: 3}
+  className: 
+  playAbility: "Ihre B\xFCrger \xFCben sich in ihrer Freizeit als Selbstversorger.
+    Dadurch bleiben mehr Rohstoffe \xFCbrig f\xFCr den Export. +2 Baustoffe"
+  Type: 3

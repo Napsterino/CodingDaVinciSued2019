@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b85d7f0701ac4f7419bf4f8dd5002c94, type: 3}
+  m_Name: FlorenceNightingale
+  m_EditorClassIdentifier: 
+  name: Florence Nightingale
+  leaderAbility: "Ihrer Reformen des Pflegewesens und der Gesundheitsf\xFCrsorge zeigt
+    wahre Wunder f\xFCr die Gesundheit der Arbeiter. Ein fehlender Arm ist kein Grund
+    mehr nicht in die Fabrik zu gehen. Generiere jede Runde zwei zus\xE4tzliche Ressourcen."
+  artwork: {fileID: 21300000, guid: 2c70eb944614a8a40a9b18d77fe40ada, type: 3}
+  className: Soziale Frauen
+  playAbility: "Ihre F\xFCrsorge in den Lazaretten der Schlachtfelder gibt den Soldaten
+    Hoffnung auf einen Durchbruch. Die Lady with the Lamp gew\xE4hrt +10 Einfluss
+    diese Runde."
+  Type: 0
