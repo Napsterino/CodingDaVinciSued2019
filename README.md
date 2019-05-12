@@ -1,4 +1,6 @@
 # CodingDaVinciSued2019
+
+Cards and Dragons
 Game for the 2019 Coding Da Vinci Sued Hackathon
 
 To open the project files we recommend Unity version 2018.3.x.
