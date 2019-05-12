@@ -15,9 +15,13 @@ namespace cdv
         #endregion
 
         #region Server Code
+#pragma warning disable 618
         public void SendCardToPlayer(NetworkInstanceId cardId, NetworkInstanceId playerId)
+#pragma warning restore 618
         {
+#pragma warning disable 618
             var cardRequestedByPlayer = NetworkServer.FindLocalObject(cardId).GetComponent<CardDisplay>();
+#pragma warning restore 618
             foreach(var card in CardsHoldedByPlayer[playerId])
             {
                 if(card != cardRequestedByPlayer)
@@ -30,12 +34,14 @@ namespace cdv
 
         private void MoveBackOnStack(CardDisplay card)
         {
-            card.transform.position = Vector3.zero;
+            card.transform.position = new Vector3(0, -2, 0);
             card.transform.rotation = Quaternion.Euler(270, 0, 0);
             Cards.Add(card);
         }
 
+#pragma warning disable 618
         private Dictionary<NetworkInstanceId, List<CardDisplay>> CardsHoldedByPlayer = new Dictionary<NetworkInstanceId, List<CardDisplay>>();
+#pragma warning restore 618
         #endregion
 
         #region Server Code

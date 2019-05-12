@@ -14,6 +14,7 @@ namespace cdv
         EnemyResourceRemoval,
         BuildingMode,
         ResourceSelection,
+        ChangeRelationship,
         Idle
     }
 
@@ -183,16 +184,15 @@ namespace cdv
                     {
                         if(SelectedRegion)
                         {
-                            var building = GameManager.GetBuilding(BuildingToBuild);
+                            var building = GameManager.GetBuilding(BuildingsToBuild[0]);
                             if(SelectedRegion.Owner == this &&
                                SelectedRegion.FulFillsRequirements(building.ConstructionRequirements))
                             {
                                 GUILayout.BeginArea(new Rect(Screen.width / 2 - 50, 15, 100, 30));
                                 if(GUILayout.Button("Bauen"))
                                 {
-                                    CmdBuildBuilding(BuildingToBuild, SelectedRegion.netId);
-                                    BuildingToBuild = null;
-                                    State = PlayerState.CurrentPlayer;
+                                    CmdBuildBuilding(BuildingsToBuild[0], SelectedRegion.netId);
+                                    CmdRemoveBuildingFromBuildList();
                                 }
                                 GUILayout.EndArea();
                             }
@@ -290,6 +290,35 @@ namespace cdv
                         break;
                     }
 
+                    case PlayerState.ChangeRelationship:
+                    {
+#pragma warning disable 618
+                        var alreadySeenRelationships = new HashSet<(NetworkInstanceId, NetworkInstanceId)>();
+#pragma warning restore 618
+                        GUILayout.BeginArea(new Rect(Screen.width / 2 - 100, Screen.height / 2 - 200, 200, 400));
+                        foreach(var player in GameManager.Players)
+                        {
+                            for(int i = 0; i < player.Diplomacy.PlayerRelationships.Count; i++)
+                            {
+                                var relationship = player.Diplomacy.PlayerRelationships[i];
+                                if(relationship.State == OldRelationshipState && 
+                                    !alreadySeenRelationships.Contains((relationship.PartnerId, player.netId)))
+                                {
+                                    alreadySeenRelationships.Add((player.netId, relationship.PartnerId));
+                                    if(GUILayout.Button($"ID:{player.netId} and ID:{relationship.PartnerId}"))
+                                    {
+                                        player.Diplomacy.CmdSetRelation(relationship.PartnerId, NewRelationshipState);
+#pragma warning disable 618
+                                        ClientScene.FindLocalObject(relationship.PartnerId).GetComponent<Diplomacy>().CmdSetRelation(player.netId, NewRelationshipState);
+#pragma warning restore 618
+                                    }
+                                }
+                            }
+                        }
+                        GUILayout.EndArea();
+                        break;
+                    }
+
                     case PlayerState.ConquerRegion:
                     {
                         if(SelectedRegion)
@@ -320,6 +349,23 @@ namespace cdv
         {
             if(isLocalPlayer)
             {
+                {
+                    var (success, hit) = MakeHitCheck(RIGHT_MOUSEBUTTON);
+                    if(success && hit.collider.CompareTag("Card") &&
+                        HandCards.Contains(hit.collider.GetComponent<CardDisplay>().Card))
+                    {
+                        var card = hit.collider.GetComponent<CardDisplay>();
+                        if(card.IsHoverd)
+                        {
+                            card.UnHover();
+                        }
+                        else
+                        {
+                            card.Hover(HoverdCardAnchor);
+                        }
+                    }
+                }
+
                 switch(State)
                 {
                     // NOTE: We have to continiously look for the GameManager because for some
@@ -339,7 +385,7 @@ namespace cdv
 
                     case PlayerState.ConquerRegion:
                     {
-                        var (success, hit) = MakeHitCheck();
+                        var (success, hit) = MakeHitCheck(LEFT_MOUSEBUTTON);
                         if(success)
                         {
                             if(hit.collider.CompareTag("Region"))
@@ -392,6 +438,17 @@ namespace cdv
                                             break;
                                         }
 
+                                        case ConquerRequirement.MustBeOccupiedByOtherPlayer:
+                                        {
+                                            if(region.Owner == null || region.Owner == this || region.IsStartRegion())
+                                            {
+                                                SelectedRegion = null;
+                                                return;
+                                            }
+
+                                            break;
+                                        }
+
                                         default:
                                         {
                                             Debug.LogError($"{requirement} is not handled");
@@ -408,7 +465,7 @@ namespace cdv
 
                     case PlayerState.LeaderCardSelection:
                     {
-                        var (success, hit) = MakeHitCheck();
+                        var (success, hit) = MakeHitCheck(LEFT_MOUSEBUTTON);
                         if(success && hit.collider.CompareTag("Card"))
                         {
                             var card = hit.collider.GetComponent<CardDisplay>();
@@ -432,7 +489,7 @@ namespace cdv
 
                     case PlayerState.CurrentPlayer:
                     {
-                        var (success, hit) = MakeHitCheck();
+                        var (success, hit) = MakeHitCheck(LEFT_MOUSEBUTTON);
                         if(success)
                         {
                             if(hit.collider.CompareTag("Card"))
@@ -455,7 +512,7 @@ namespace cdv
 
                     case PlayerState.BuildingMode:
                     {
-                        var (success, hit) = MakeHitCheck();
+                        var (success, hit) = MakeHitCheck(LEFT_MOUSEBUTTON);
                         if(success && hit.collider.CompareTag("Region"))
                         {
                             SelectedRegion = hit.collider.GetComponent<Region>();
@@ -468,10 +525,10 @@ namespace cdv
             }
         }
 
-        private (bool, RaycastHit) MakeHitCheck()
+        private (bool, RaycastHit) MakeHitCheck(int mouseButton)
         {
             var hit = new RaycastHit();
-            if(Input.GetMouseButtonDown(LEFT_MOUSEBUTTON))
+            if(Input.GetMouseButtonDown(mouseButton))
             {
                 var mouse = new Vector3();
                 mouse.x = Input.mousePosition.x;
@@ -503,7 +560,7 @@ namespace cdv
 #pragma warning restore 618
 
 #pragma warning disable 618
-        private Dictionary<NetworkInstanceId, Region> OwnedRegions = new Dictionary<NetworkInstanceId, Region>();
+        public Dictionary<NetworkInstanceId, Region> OwnedRegions = new Dictionary<NetworkInstanceId, Region>();
 #pragma warning restore 618
         private List<Card> LeaderCards = new List<Card>(4);
         private List<Card> HandCards = new List<Card>(4);
@@ -527,8 +584,13 @@ namespace cdv
         [SyncVar, HideInInspector] public int KindergardenResources = 0;
         [SyncVar] bool HasKindergarden = false;
         [SyncVar, HideInInspector] public int SelectedResourceAmount = 0;
-        [SyncVar, HideInInspector] public string BuildingToBuild = null;
+        [HideInInspector] public SyncListString BuildingsToBuild = new SyncListString();
+        [SyncVar] string BuildingToBuild = null;
         [SyncVar] bool ShowBuildingOverview = false;
+        [SyncVar, HideInInspector] public int RandomResourcesOnTurnStart = 0;
+        [SyncVar, HideInInspector] public RelationshipState OldRelationshipState;
+        [SyncVar, HideInInspector] public RelationshipState NewRelationshipState;
+        [SerializeField] Transform HoverdCardAnchor;
 #pragma warning restore 618
         #endregion
 
@@ -561,6 +623,17 @@ namespace cdv
 #pragma warning restore 618
         {
             GameManager.StockExchange.Offers.Remove(offer);
+        }
+
+#pragma warning disable 618
+        [Command] private void CmdRemoveBuildingFromBuildList()
+#pragma warning restore 618
+        {
+            BuildingsToBuild.RemoveAt(0);
+            if(BuildingsToBuild.Count == 0)
+            {
+                State = PlayerState.CurrentPlayer;
+            }
         }
 
 #pragma warning disable 618
@@ -651,27 +724,24 @@ namespace cdv
         [Command]
         private void CmdBuildBuilding(string buildingName, NetworkInstanceId regionId)
         {
-            foreach(var buildingPrefab in GameManager.Buildings)
+            var buildingPrefab = GameManager.GetBuilding(buildingName);
+            if(buildingPrefab.Type == buildingName)
             {
-                if(buildingPrefab.Type == buildingName)
+                if(buildingName == "Kindergarden")
                 {
-                    if(buildingName == "Kindergarden")
-                    {
-                        HasKindergarden = true;
-                    }
+                    HasKindergarden = true;
+                }
 
-                    var building = Instantiate(buildingPrefab);
-                    var region = NetworkServer.FindLocalObject(regionId).GetComponent<Region>();
-                    building.transform.position = region.transform.position;
-                    NetworkServer.Spawn(building.gameObject);
-                    region.RpcSetBuilding(building.netId);
-                    Resources.ApplyConstructionCosts(building.ConstructionCosts, TechnologyConstructionCostReduction);
-                    VictoryPoints.ApplyVictoryPoints(building.GainedVictoryPoints);
-                    if(buildingName == "Opera")
-                    {
-                        VictoryPoints.AddCulture(OperaPointsBuff, false);
-                    }
-                    break;
+                var building = Instantiate(buildingPrefab);
+                var region = NetworkServer.FindLocalObject(regionId).GetComponent<Region>();
+                building.transform.position = region.transform.position;
+                NetworkServer.Spawn(building.gameObject);
+                region.RpcSetBuilding(building.netId);
+                Resources.ApplyConstructionCosts(building.ConstructionCosts, TechnologyConstructionCostReduction);
+                VictoryPoints.ApplyVictoryPoints(building.GainedVictoryPoints);
+                if(buildingName == "Opera")
+                {
+                    VictoryPoints.AddCulture(OperaPointsBuff, false);
                 }
             }
         }
@@ -807,17 +877,24 @@ namespace cdv
 
         public void AddCardToHand(CardDisplay card)
         {
-            card.transform.position = transform.position + (transform.forward * 8);
-            card.transform.LookAt(transform);
-            card.transform.Rotate(0, 180, 0);
-            card.transform.position += transform.right * (-1.5f + (HandCards.Count * 2.5f));
-#pragma warning disable 618
-            RpcAddCardToHand(card.GetComponent<NetworkIdentity>().netId);
-            if(card.Card.className == "EventCard")
+            if(card.Card.Type == CardType.Event)
             {
+#pragma warning disable 618
                 CmdPlayCard(card.GetComponent<NetworkIdentity>().netId);
-            }
 #pragma warning restore 618
+            }
+            else
+            {
+                card.transform.position = transform.position + (transform.forward * 8);
+                card.transform.LookAt(transform);
+                card.transform.Rotate(0, 180, 0);
+                card.transform.position += transform.right * (-1.5f + (HandCards.Count * 2.5f));
+#pragma warning disable 618
+                RpcAddCardToHand(card.GetComponent<NetworkIdentity>().netId);
+#pragma warning restore 618
+            }
+
+
         }
 
 #pragma warning disable 618
@@ -837,7 +914,7 @@ namespace cdv
                 effects.AddRange(cardGO.GetComponents<CardEffect>());
 
                 cardGO.transform.position = technologyCardStack.Graveyard.position;
-                cardGO.transform.rotation = Quaternion.Euler(90, 0, 0);
+                cardGO.transform.localRotation = Quaternion.Euler(90, 0, 0);
             }
             else if(card.Type == CardType.Leader)
             {
@@ -845,7 +922,7 @@ namespace cdv
                     GameObject.Find("LeaderCards").GetComponent<MainCardStack>();
 
                 cardGO.transform.position = leaderCardStack.Graveyard.position;
-                cardGO.transform.rotation = Quaternion.Euler(90, 0, 0);
+                cardGO.transform.localRotation = Quaternion.Euler(90, 0, 0);
 
                 foreach(var effect in cardGO.GetComponents<CardEffect>())
                 {
@@ -861,7 +938,7 @@ namespace cdv
                     GameObject.Find("LeaderCards").GetComponent<MainCardStack>();
 
                 cardGO.transform.position = leaderCardStack.Graveyard.position;
-                cardGO.transform.rotation = Quaternion.Euler(90, 0, 0);
+                cardGO.transform.localRotation = Quaternion.Euler(90, 0, 0);
 
                 effects.AddRange(cardGO.GetComponents<CardEffect>());
             }
@@ -923,6 +1000,7 @@ namespace cdv
                 GameManager.RequestMainCardStackTopCard(netId);
                 Resources.ApplyPerRoundValues();
 
+                // TODO: In case an event card is drawn this overwrites the state of the event find a way to fix this
                 var playersInWarWith = Diplomacy.PlayerRelationships.FindAll(RelationshipState.War);
                 if(playersInWarWith.Count > 0)
                 {
@@ -934,45 +1012,22 @@ namespace cdv
                     }
                 }
 
-                for(int i = 0; i < Diplomacy.PlayerRelationships.FindAll(RelationshipState.TradingAgreement).Count; i++)
+                int resourcesToGenerate = RandomResourcesOnTurnStart;
+                resourcesToGenerate += Diplomacy.PlayerRelationships.FindAll(RelationshipState.TradingAgreement).Count;
+                resourcesToGenerate += Diplomacy.PlayerRelationships.FindAll(RelationshipState.Alliance).Count * 2;
+                if(HasKindergarden)
                 {
-                    ResourceType resource = (ResourceType)Random.Range(0, (int)ResourceType.Count);
+                    resourcesToGenerate += KindergardenResources;
+                }
+
+                for(int i = 0; i < resourcesToGenerate; i++)
+                {
+                    var resource = (ResourceType)Random.Range(0, (int)ResourceType.Count);
                     switch(resource)
                     {
                         case ResourceType.ConstructionMaterial: { Resources.ConstructionMaterial++; break; }
                         case ResourceType.Power: { Resources.Power++; break; }
                         case ResourceType.Technology: { Resources.Technology++; break; }
-                    }
-                }
-
-                for(int i = 0; i < Diplomacy.PlayerRelationships.FindAll(RelationshipState.Alliance).Count * 2; i++)
-                {
-                    ResourceType resource = (ResourceType)Random.Range(0, (int)ResourceType.Count);
-                    switch(resource)
-                    {
-                        case ResourceType.ConstructionMaterial:
-                        { Resources.ConstructionMaterial++; break; }
-                        case ResourceType.Power:
-                        { Resources.Power++; break; }
-                        case ResourceType.Technology:
-                        { Resources.Technology++; break; }
-                    }
-                }
-
-                if(HasKindergarden)
-                {
-                    for(int i = 0; i < KindergardenResources; i++)
-                    {
-                        ResourceType resource = (ResourceType)Random.Range(0, (int)ResourceType.Count);
-                        switch(resource)
-                        {
-                            case ResourceType.ConstructionMaterial:
-                            { Resources.ConstructionMaterial++; break; }
-                            case ResourceType.Power:
-                            { Resources.Power++; break; }
-                            case ResourceType.Technology:
-                            { Resources.Technology++; break; }
-                        }
                     }
                 }
 
@@ -1044,5 +1099,6 @@ namespace cdv
         private Dictionary<string, int> LeaderCardsOfGroup = new Dictionary<string, int>();
         #endregion
         const int LEFT_MOUSEBUTTON = 0;
+        const int RIGHT_MOUSEBUTTON = 1;
     }
 }

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: MadameDulcetMelodiaScreech
   m_EditorClassIdentifier: 
   name: Madame Dulcet Melodia Screech
-  description: "Eine ber\xFChmte S\xE4ngerin hat sich f\xFCr ein Konzert angemeldet."
+  leaderAbility: 
   artwork: {fileID: 21300000, guid: e5ecbe0619902dc45b581cb25d71204e, type: 3}
   className: 
-  ability: +3 Kultur
+  playAbility: "Eine ber\xFChmte S\xE4ngerin hat sich f\xFCr ein Konzert angemeldet"
   Type: 3

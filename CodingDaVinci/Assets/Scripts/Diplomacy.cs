@@ -272,6 +272,25 @@ namespace cdv
 
 
         #region Server Code
+        // TODO: There are some other parts where this can be probably used.
+        // Refactor the parts there
+#pragma warning disable 618
+        private void SetRelationship(NetworkInstanceId partnerId, RelationshipState newState)
+#pragma warning restore 618
+        {
+            int index = PlayerRelationships.Find(partnerId);
+            var relationship = PlayerRelationships[index];
+            relationship.State = newState;
+            PlayerRelationships[index] = relationship;
+        }
+
+#pragma warning disable 618
+        [Command] public void CmdSetRelation(NetworkInstanceId partnerId, RelationshipState newState)
+#pragma warning restore 618
+        {
+            SetRelationship(partnerId, newState);
+        }
+
         /// <summary>
         /// Declares war to another player
         /// </summary>

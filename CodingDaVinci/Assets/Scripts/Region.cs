@@ -20,6 +20,7 @@ namespace cdv
     public sealed class Region : NetworkBehaviour
 #pragma warning restore 618
     {
+
         #region Client Code
         /// <summary>
         /// Sets the owner of the region
@@ -75,11 +76,24 @@ namespace cdv
             return false;
         }
 
+        public bool IsStartRegion()
+        {
+            foreach(var element in Properties)
+            {
+                if(element == RegionProperty.StartRegion)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public IReadOnlyCollection<Region> NeighbourRegions => Array.AsReadOnly(m_NeighbourRegions);
 
         public Building Building;
         public Player Owner;
-        [SerializeField] private Region[] m_NeighbourRegions;
+        [SerializeField] private Region[] m_NeighbourRegions = new Region[200];
         [SerializeField] private RegionProperty[] Properties; 
 
         public const int FREE_PRICE = 3;

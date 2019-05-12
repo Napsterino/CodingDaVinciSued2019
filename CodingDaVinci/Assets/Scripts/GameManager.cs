@@ -46,6 +46,7 @@ namespace cdv
 
         public IReadOnlyCollection<Building> Buildings => Array.AsReadOnly(m_Buildings);
         [SerializeField] private Building[] m_Buildings;
+        [SerializeField] private Building[] SpecialBuildings;
         #endregion
 
         #region Shared Code
@@ -58,6 +59,15 @@ namespace cdv
                     return building;
                 }
             }
+
+            foreach(var building in SpecialBuildings)
+            {
+                if(building.Type == type)
+                {
+                    return building;
+                }
+            }
+
             return null;
         }
 
@@ -70,6 +80,13 @@ namespace cdv
             TechnologyCardStack = go?.GetComponent<TechnologyCardStack>();
 
             foreach(var building in Buildings)
+            {
+#pragma warning disable 618
+                ClientScene.RegisterPrefab(building.gameObject);
+#pragma warning restore 618
+            }
+
+            foreach(var building in SpecialBuildings)
             {
 #pragma warning disable 618
                 ClientScene.RegisterPrefab(building.gameObject);
@@ -130,14 +147,22 @@ namespace cdv
                         {
                             LeaderCardStack.Shuffle(50);
                             CurrentPlayer = UnityEngine.Random.Range(0, m_Players.Count);
+                            int startPositionIndex = UnityEngine.Random.Range(0, PlayerSpawns.Length);
 
                             int playerIndex = CurrentPlayer;
                             for(int i = 0; i < PLAYER_COUNT; i++)
                             {
+                                m_Players[playerIndex].transform.position = PlayerSpawns[startPositionIndex].position;
+                                m_Players[playerIndex].transform.rotation = PlayerSpawns[startPositionIndex].rotation;
+                                m_Players[playerIndex].RpcSetCamera(PlayerSpawns[startPositionIndex].position, PlayerSpawns[startPositionIndex].rotation);
+                                StartRegions[startPositionIndex].RpcSetOwner(m_Players[playerIndex].netId);
+                                m_Players[playerIndex].RpcAddRegion(StartRegions[startPositionIndex].netId);
+
                                 LeaderCardStack.RequestLeaderCardSelection(
                                     m_Players[playerIndex].netId, 3);
 
                                 playerIndex = (playerIndex + 1) % PLAYER_COUNT;
+                                startPositionIndex = (startPositionIndex + 1) % PlayerSpawns.Length;
                             }
 
                             CurrentState = State.LeaderCardSelection;
@@ -206,11 +231,6 @@ namespace cdv
             if(isServer && !m_Players.Contains(player))
             {
                 HasSelectedLeaderCard.Add(player, false);
-                player.transform.position = PlayerSpawns[ConnectedAuthorities].position;
-                player.transform.rotation = PlayerSpawns[ConnectedAuthorities].rotation;
-                player.RpcSetCamera(PlayerSpawns[ConnectedAuthorities].position, PlayerSpawns[ConnectedAuthorities].rotation);
-                StartRegions[ConnectedAuthorities].RpcSetOwner(player.netId);
-                player.RpcAddRegion(StartRegions[ConnectedAuthorities].netId);
 #pragma warning disable 618
                 var playerIds = new NetworkInstanceId[Players.Count];
 #pragma warning restore 618
@@ -395,7 +415,6 @@ namespace cdv
                         {
                             player.SendTie(winners);
                         }
-
                     }
                         
                     return;
@@ -413,6 +432,7 @@ namespace cdv
         private void ChangeCurrentPlayer()
         {
             m_Players[CurrentPlayer].MakeCurrentPlayer();
+            Table.rotation = Quaternion.AngleAxis(m_Players[CurrentPlayer].transform.eulerAngles.y, Vector3.up);
             CurrentPlayerMark.position = m_Players[CurrentPlayer].CurrentPlayerMarkPosition();
             for (int i = 0; i < m_Players.Count; i++)
             {
@@ -444,6 +464,7 @@ namespace cdv
         private State CurrentState = State.PlayerRegistration;
         public StockExchange StockExchange => m_StockExchange;
         [SerializeField] private StockExchange m_StockExchange;
+        [SerializeField] private Transform Table;
         public const int PLAYER_COUNT = 3;
         #endregion
 
