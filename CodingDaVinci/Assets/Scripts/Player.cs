@@ -109,6 +109,12 @@ namespace cdv
             VictoryPoints = GetComponent<VictoryPoints>();
             Resources = GetComponent<Resources>();
             Diplomacy = GetComponent<Diplomacy>();
+
+            if(isLocalPlayer)
+            {
+                string name = PlayerPrefs.GetString("PlayerName");
+                CmdSetPlayerName(name);
+            }
         }
 
         private void OnGUI()
@@ -191,7 +197,7 @@ namespace cdv
                                 GUILayout.BeginArea(new Rect(Screen.width / 2 - 50, 15, 100, 30));
                                 if(GUILayout.Button("Bauen"))
                                 {
-                                    CmdBuildBuilding(BuildingsToBuild[0], SelectedRegion.netId);
+                                    CmdBuildBuilding(BuildingsToBuild[0], SelectedRegion.netId, true);
                                     CmdRemoveBuildingFromBuildList();
                                 }
                                 GUILayout.EndArea();
@@ -260,7 +266,7 @@ namespace cdv
                                 {
                                     if(Resources.HasResources(building.ConstructionCosts))
                                     {
-                                        CmdBuildBuilding(BuildingToBuild, SelectedRegion.netId);
+                                        CmdBuildBuilding(BuildingToBuild, SelectedRegion.netId, false);
                                     }
                                 }
                             }
@@ -324,10 +330,21 @@ namespace cdv
                         if(SelectedRegion)
                         {
                             GUILayout.BeginArea(new Rect(Screen.width / 2 - 50, 20, 100, 30));
-                            if(GUILayout.Button("Besetzen"))
+                            if(RegionGetsAddedToPlayer)
                             {
-                                CmdRequestConquerRegion(SelectedRegion.netId, true);
-                                State = PlayerState.CurrentPlayer;
+                                if(GUILayout.Button("Besetzen"))
+                                {
+                                    CmdRequestConquerRegion(SelectedRegion.netId, true);
+                                    State = PlayerState.CurrentPlayer;
+                                }
+                            }
+                            else
+                            {
+                                if(GUILayout.Button("Befreien"))
+                                {
+                                    CmdFreeRegion(SelectedRegion.netId);
+                                    State = PlayerState.CurrentPlayer;
+                                }
                             }
                             GUILayout.EndArea();
                         }
@@ -351,17 +368,24 @@ namespace cdv
             {
                 {
                     var (success, hit) = MakeHitCheck(RIGHT_MOUSEBUTTON);
-                    if(success && hit.collider.CompareTag("Card") &&
-                        HandCards.Contains(hit.collider.GetComponent<CardDisplay>().Card))
+                    if(success && hit.collider.CompareTag("Card"))
                     {
-                        var card = hit.collider.GetComponent<CardDisplay>();
-                        if(card.IsHoverd)
+                        bool cardIsOnHand = HandCards.Contains(hit.collider.GetComponent<CardDisplay>().Card);
+                        bool cardIsPossibleLeaderCard = GameManager?.MainCardStack.
+                            CardsHoldedByPlayer[netId].Find(x =>
+                           x.netId == hit.collider.GetComponent<CardDisplay>().netId);
+
+                        if(cardIsOnHand || cardIsPossibleLeaderCard)
                         {
-                            card.UnHover();
-                        }
-                        else
-                        {
-                            card.Hover(HoverdCardAnchor);
+                            var card = hit.collider.GetComponent<CardDisplay>();
+                            if(card.IsHoverd)
+                            {
+                                CmdUnHoverCard(card.netId);
+                            }
+                            else
+                            {
+                                CmdHoverCard(card.netId);
+                            }
                         }
                     }
                 }
@@ -373,6 +397,7 @@ namespace cdv
                     // even if it already exists
                     case PlayerState.Registration:
                     {
+                        //HoverdCardAnchor = transform.GetChild(0);
                         var go = GameObject.Find("GameManager");
                         GameManager = go?.GetComponent<GameManager>();
                         if(GameManager)
@@ -590,11 +615,38 @@ namespace cdv
         [SyncVar, HideInInspector] public int RandomResourcesOnTurnStart = 0;
         [SyncVar, HideInInspector] public RelationshipState OldRelationshipState;
         [SyncVar, HideInInspector] public RelationshipState NewRelationshipState;
-        [SerializeField] Transform HoverdCardAnchor;
+        [SyncVar, HideInInspector] public bool RegionGetsAddedToPlayer;
+        [SyncVar] string PlayerName;
+        [SerializeField] Transform AnchorSlot;
 #pragma warning restore 618
         #endregion
 
         #region Server Code
+#pragma warning disable 618
+        [Command] private void CmdFreeRegion(NetworkInstanceId regionId)
+#pragma warning restore 618
+        {
+#pragma warning disable 618
+            var region = NetworkServer.FindLocalObject(regionId).GetComponent<Region>();
+            region.RpcSetOwner(NetworkInstanceId.Invalid);
+#pragma warning restore 618
+        }
+
+#pragma warning disable 618
+        [Command] private void CmdHoverCard(NetworkInstanceId cardId)
+        {
+            Vector3 position = AnchorSlot.position;
+            NetworkServer.FindLocalObject(cardId).GetComponent<CardDisplay>().Hover(position);
+        }
+#pragma warning restore 618
+
+#pragma warning disable 618
+        [Command] private void CmdUnHoverCard(NetworkInstanceId cardId)
+        {
+            NetworkServer.FindLocalObject(cardId).GetComponent<CardDisplay>().UnHover();
+        }
+#pragma warning restore 618
+
 #pragma warning disable 618
         [Command] public void CmdPostTradingOffer(ResourceType offeredResource,
             string amountOffered, ResourceType requestedResource, string amountRequested)
@@ -722,7 +774,7 @@ namespace cdv
         }
 
         [Command]
-        private void CmdBuildBuilding(string buildingName, NetworkInstanceId regionId)
+        private void CmdBuildBuilding(string buildingName, NetworkInstanceId regionId, bool forFree)
         {
             var buildingPrefab = GameManager.GetBuilding(buildingName);
             if(buildingPrefab.Type == buildingName)
@@ -734,10 +786,15 @@ namespace cdv
 
                 var building = Instantiate(buildingPrefab);
                 var region = NetworkServer.FindLocalObject(regionId).GetComponent<Region>();
-                building.transform.position = region.transform.position;
+                building.transform.SetParent(region.transform);
+                building.transform.localPosition = Vector3.zero;
                 NetworkServer.Spawn(building.gameObject);
                 region.RpcSetBuilding(building.netId);
-                Resources.ApplyConstructionCosts(building.ConstructionCosts, TechnologyConstructionCostReduction);
+                if(!forFree)
+                {
+                    Resources.ApplyConstructionCosts(building.ConstructionCosts, TechnologyConstructionCostReduction);
+                    TechnologyConstructionCostReduction = 0;
+                }
                 VictoryPoints.ApplyVictoryPoints(building.GainedVictoryPoints);
                 if(buildingName == "Opera")
                 {
@@ -761,6 +818,10 @@ namespace cdv
             {
                 RpcAddRegion(regionId);
                 region.RpcSetOwner(netId);
+                if(region.Building)
+                {
+                    VictoryPoints.ApplyVictoryPoints(region.Building.GainedVictoryPoints);
+                }
             }
             uint price = (uint)((region.Owner == null ? 3 : 9) * NextRegionCostFactor);
             if(Resources.Power >= price)
@@ -769,6 +830,16 @@ namespace cdv
                 Resources.Power -= (int)price;
                 RpcAddRegion(regionId);
                 region.RpcSetOwner(netId);
+                if(region.Building)
+                {
+                    VictoryPoints.ApplyVictoryPoints(region.Building.GainedVictoryPoints);
+                }
+            }
+
+            if(BuildingsToBuild.Count > 0)
+            {
+                CmdBuildBuilding(BuildingsToBuild[0], regionId, true);
+                BuildingsToBuild.RemoveAt(0);
             }
         }
 
@@ -789,7 +860,11 @@ namespace cdv
         public void AddLeaderCard(NetworkInstanceId cardId)
 #pragma warning restore 618
         {
-            State = PlayerState.Idle;
+        //Adding draw card sound
+        GameObject audio = GameObject.Find("CardDraw");
+        audio.GetComponent<AudioSource>().Play();
+
+        State = PlayerState.Idle;
 #pragma warning disable 618
             var card = NetworkServer.FindLocalObject(cardId);
 #pragma warning restore 618
@@ -871,12 +946,18 @@ namespace cdv
                 }
             }
 
+            card.GetComponent<CardDisplay>().IsHoverd = false;
+            card.GetComponent<CardDisplay>().IsMoving = false;
             card.transform.position = transform.position + (transform.right * -2.8f) + (transform.forward * 4) + new Vector3(0, -0.8f, 0);
             RpcAddLeaderCard(cardId);
         }
 
-        public void AddCardToHand(CardDisplay card)
+    public void AddCardToHand(CardDisplay card)
         {
+        //Adding draw card sound
+        GameObject audio = GameObject.Find("CardDraw"); 
+        audio.GetComponent<AudioSource>().Play();
+        
             if(card.Card.Type == CardType.Event)
             {
 #pragma warning disable 618
@@ -889,6 +970,7 @@ namespace cdv
                 card.transform.LookAt(transform);
                 card.transform.Rotate(0, 180, 0);
                 card.transform.position += transform.right * (-1.5f + (HandCards.Count * 2.5f));
+                card.OldPosition = card.transform.position;
 #pragma warning disable 618
                 RpcAddCardToHand(card.GetComponent<NetworkIdentity>().netId);
 #pragma warning restore 618
@@ -898,32 +980,42 @@ namespace cdv
         }
 
 #pragma warning disable 618
+        [Command] void CmdSetPlayerName(string name)
+#pragma warning restore 618
+        {
+            PlayerName = name;
+        }
+
+#pragma warning disable 618
         [Command] private void CmdPlayCard(NetworkInstanceId cardId)
 #pragma warning restore 618
         {
+        //Adding draw card sound
+        GameObject audio = GameObject.Find("CardPlay");
+        audio.GetComponent<AudioSource>().Play();
+            Assert.IsTrue(isServer, "Only call CmdPlayCard on the Server");
 #pragma warning disable 618
-            var cardGO = NetworkServer.FindLocalObject(cardId);
+        var cardGO = NetworkServer.FindLocalObject(cardId);
 #pragma warning restore 618
             var card = cardGO.GetComponent<CardDisplay>().Card;
+            cardGO.GetComponent<CardDisplay>().IsHoverd = false;
+            cardGO.GetComponent<CardDisplay>().IsMoving = false;
             var effects = new List<CardEffect>();
+            Transform parent = null;
             if(card.Type == CardType.Technology)
             {
                 var technologyCardStack = 
                     GameObject.Find("TechnologyCards").GetComponent<TechnologyCardStack>();
 
                 effects.AddRange(cardGO.GetComponents<CardEffect>());
-
-                cardGO.transform.position = technologyCardStack.Graveyard.position;
-                cardGO.transform.localRotation = Quaternion.Euler(90, 0, 0);
+                parent = technologyCardStack.Graveyard;
             }
             else if(card.Type == CardType.Leader)
             {
                 var leaderCardStack =
                     GameObject.Find("LeaderCards").GetComponent<MainCardStack>();
 
-                cardGO.transform.position = leaderCardStack.Graveyard.position;
-                cardGO.transform.localRotation = Quaternion.Euler(90, 0, 0);
-
+                parent = leaderCardStack.Graveyard;
                 foreach(var effect in cardGO.GetComponents<CardEffect>())
                 {
                     if(!effect.IsLeaderEffect)
@@ -932,16 +1024,18 @@ namespace cdv
                     }
                 }
             }
-            else if(card.Type == CardType.OldMaid)
+            else if(card.Type == CardType.OldMaid || card.Type == CardType.Event)
             {
                 var leaderCardStack =
                     GameObject.Find("LeaderCards").GetComponent<MainCardStack>();
 
-                cardGO.transform.position = leaderCardStack.Graveyard.position;
-                cardGO.transform.localRotation = Quaternion.Euler(90, 0, 0);
-
+                parent = leaderCardStack.Graveyard;
                 effects.AddRange(cardGO.GetComponents<CardEffect>());
             }
+
+            cardGO.transform.SetParent(parent);
+            cardGO.transform.localPosition = Vector3.zero;
+            cardGO.transform.localRotation = Quaternion.Euler(90, 90, 0);
 
             foreach(var effect in effects)
             {
@@ -1055,6 +1149,14 @@ namespace cdv
                 {
                     if(region.Building)
                     {
+                        if(BuildingResourcesBuffs.ContainsKey(region.Building.Type))
+                        {
+                            Resources.AddResources(BuildingResourcesBuffs[region.Building.Type].ToArray());
+                        }
+                        if(BuildingVictoryPointsBuffs.ContainsKey(region.Building.Type))
+                        {
+                            VictoryPoints.ApplyVictoryPoints(BuildingVictoryPointsBuffs[region.Building.Type].ToArray());
+                        }
                         Resources.AddResources(region.Building.GeneratedResources);
                         if(region.Building.Type == "Opera")
                         {
@@ -1097,6 +1199,8 @@ namespace cdv
         }
 
         private Dictionary<string, int> LeaderCardsOfGroup = new Dictionary<string, int>();
+        public Dictionary<string, List<ResourceInfo>> BuildingResourcesBuffs = new Dictionary<string, List<ResourceInfo>>();
+        public Dictionary<string, List<Building.VictoryPoints>> BuildingVictoryPointsBuffs = new Dictionary<string, List<Building.VictoryPoints>>();
         #endregion
         const int LEFT_MOUSEBUTTON = 0;
         const int RIGHT_MOUSEBUTTON = 1;

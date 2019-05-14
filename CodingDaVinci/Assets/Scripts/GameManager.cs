@@ -75,7 +75,7 @@ namespace cdv
         {
             base.PreStartClient();
             var go = GameObject.Find("LeaderCards");
-            LeaderCardStack = go?.GetComponent<MainCardStack>();
+            MainCardStack = go?.GetComponent<MainCardStack>();
             go = GameObject.Find("TechnologyCards");
             TechnologyCardStack = go?.GetComponent<TechnologyCardStack>();
 
@@ -94,7 +94,7 @@ namespace cdv
             }
         }
         
-        private MainCardStack LeaderCardStack;
+        public MainCardStack MainCardStack;
         private TechnologyCardStack TechnologyCardStack;
         public IReadOnlyCollection<Player> Players => m_Players;
         public List<Player> m_Players = new List<Player>(PLAYER_COUNT);
@@ -130,7 +130,7 @@ namespace cdv
 #pragma warning restore 618
         {
             Assert.IsTrue(isServer, "Only call RequestLeaderCard on the server");
-            LeaderCardStack.SendCardToPlayer(card, playerId);
+            MainCardStack.SendCardToPlayer(card, playerId);
             var player = SelectedLeaderCard(playerId);
             player.AddLeaderCard(card);
         }
@@ -145,9 +145,16 @@ namespace cdv
                     {
                         if(ConnectedAuthorities == PLAYER_COUNT)
                         {
-                            LeaderCardStack.Shuffle(50);
+                            MainCardStack.Shuffle(50);
                             CurrentPlayer = UnityEngine.Random.Range(0, m_Players.Count);
                             int startPositionIndex = UnityEngine.Random.Range(0, PlayerSpawns.Length);
+
+                            ResourceInfo[] startResources = new ResourceInfo[]
+                            {
+                                new ResourceInfo{ Type = ResourceType.ConstructionMaterial, Amount = 4 },
+                                new ResourceInfo{ Type = ResourceType.Power, Amount = 4 },
+                                new ResourceInfo{ Type = ResourceType.Technology, Amount = 4 }
+                            };
 
                             int playerIndex = CurrentPlayer;
                             for(int i = 0; i < PLAYER_COUNT; i++)
@@ -158,8 +165,9 @@ namespace cdv
                                 StartRegions[startPositionIndex].RpcSetOwner(m_Players[playerIndex].netId);
                                 m_Players[playerIndex].RpcAddRegion(StartRegions[startPositionIndex].netId);
 
-                                LeaderCardStack.RequestLeaderCardSelection(
+                                MainCardStack.RequestLeaderCardSelection(
                                     m_Players[playerIndex].netId, 3);
+                                m_Players[playerIndex].Resources.AddResources(startResources);
 
                                 playerIndex = (playerIndex + 1) % PLAYER_COUNT;
                                 startPositionIndex = (startPositionIndex + 1) % PlayerSpawns.Length;
@@ -181,9 +189,10 @@ namespace cdv
                             }
                         }
 
-                        LeaderCardStack.Shuffle(50);
+                        MainCardStack.Shuffle(50);
                         TechnologyCardStack.Shuffle(50);
                         FirstPlayerOfCurrentRound = CurrentPlayer;
+                        CurrentPlayerMark.position = m_Players[CurrentPlayer].CurrentPlayerMarkPosition();
                         ChangeCurrentPlayer();
                         CurrentState = State.Idle;
                         m_Round++;
@@ -219,7 +228,7 @@ namespace cdv
         {
             // REFACOTR: Maybe let the player request the card directly at the maincardStack
             Assert.IsTrue(isServer, "Call RequestMainCardStackTopCard only on the server");
-            LeaderCardStack.SendTopCardToPlayer(playerId);
+            MainCardStack.SendTopCardToPlayer(playerId);
         }
 
         /// <summary>
@@ -420,6 +429,10 @@ namespace cdv
                     return;
                 }
 
+                CurrentPlayer++;
+                CurrentPlayer %= m_Players.Count;
+                FirstPlayerOfCurrentRound = CurrentPlayer;
+                CurrentPlayerMark.position = m_Players[CurrentPlayer].CurrentPlayerMarkPosition();
                 m_Round++;
             }
 
@@ -433,7 +446,6 @@ namespace cdv
         {
             m_Players[CurrentPlayer].MakeCurrentPlayer();
             Table.rotation = Quaternion.AngleAxis(m_Players[CurrentPlayer].transform.eulerAngles.y, Vector3.up);
-            CurrentPlayerMark.position = m_Players[CurrentPlayer].CurrentPlayerMarkPosition();
             for (int i = 0; i < m_Players.Count; i++)
             {
                 if (i != CurrentPlayer)
@@ -451,7 +463,7 @@ namespace cdv
         public void RequestLeaderCardsForSelection(NetworkInstanceId playerId)
 #pragma warning restore 618
         {
-            LeaderCardStack.RequestLeaderCardSelection(playerId, 2);
+            MainCardStack.RequestLeaderCardSelection(playerId, 2);
         }
 
         public Transform[] PlayerSpawns;

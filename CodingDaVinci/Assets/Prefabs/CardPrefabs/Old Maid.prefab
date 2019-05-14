@@ -111,8 +111,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 4.84, y: -248.49}
-  m_SizeDelta: {x: 384.88, y: 216.28}
+  m_AnchoredPosition: {x: -0.97, y: -246.04}
+  m_SizeDelta: {x: 403.99, y: 221.17}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7706687820013624167
 CanvasRenderer:
@@ -190,8 +190,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 1.24, y: -110.56}
-  m_SizeDelta: {x: 353.2, y: 31.51}
+  m_AnchoredPosition: {x: 4.43, y: -96.9}
+  m_SizeDelta: {x: 338.63, y: 30.71}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7706687820075715420
 CanvasRenderer:
@@ -587,6 +587,9 @@ MonoBehaviour:
   leaderAbility: {fileID: 7706687820949866876}
   playAbility: {fileID: 7706687820013624164}
   artwork: {fileID: 7706687820522297928}
+  IsHoverd: 0
+  IsMoving: 0
+  OldPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &1084177848255855456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -641,7 +644,7 @@ MonoBehaviour:
   m_VelocityThreshold: 0.0001
   m_SnapThreshold: 5
   m_InterpolateRotation: 1
-  m_InterpolateMovement: 1
+  m_InterpolateMovement: 0.5
 --- !u!65 &5718433326363705937
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -15,7 +15,7 @@ MonoBehaviour:
   name: "Madame de Sta\xEBl"
   leaderAbility: Obwohl sie immer versuchte Einfluss in der Politik zu erlangen, fand
     sie sich am Ende immer auf der falschen Seite wieder oder wurde von den Machthabern
-    abgelehnt. +2 Kultur und -2 Einfluss pro Runde
+    abgelehnt. +2 Kultur und -2 Einfluss
   artwork: {fileID: 21300000, guid: 8d64b20e8138d844f8dc0286681ed50d, type: 3}
   className: Frauen der Politik
   playAbility: "Ihr meistgelesenes Werk war De l\u2019Allemagne (\u201E\xDCber Deutschland\u201C).

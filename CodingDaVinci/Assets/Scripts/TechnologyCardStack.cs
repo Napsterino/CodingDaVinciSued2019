@@ -4,17 +4,12 @@ using UnityEngine.Networking;
 
 namespace cdv
 {
+    // TODO: IsEmpty remove and make tech stack just a card stack
     public sealed class TechnologyCardStack : CardStack
     {
         #region Shared Code
-        public override void PreStartClient()
-        {
-            base.PreStartClient();
-            Graveyard = GameObject.Find("TechnologyCards/Graveyard").transform;
-        }
         #endregion
-
         #region Server Code
-        #endregion    
+        #endregion
     }
 }

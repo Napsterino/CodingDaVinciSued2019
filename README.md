@@ -11,4 +11,4 @@ If you want to play on a single PC you can start the game 3 times and join on lo
 
 Also the Game Design Document can be found in the "docs" folder.
 
-![Ingame](https://github.com/Napsterino/CodingDaVinciSued2019/blob/master/resources/Spielfeld/Coding_Da_Vinci.JPG)
+![Ingame](https://github.com/Napsterino/CodingDaVinciSued2019/blob/master/resources/Spielfeld/Coding_Da_Vinci.PNG)

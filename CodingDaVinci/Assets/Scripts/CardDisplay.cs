@@ -8,30 +8,18 @@ namespace cdv
     public class CardDisplay : NetworkBehaviour
 #pragma warning restore 618
     {
-
-        [Command] private void CmdHover(Vector3 position)
+        public void Hover(Vector3 targetPosition)
         {
             IsMoving = true;
-            m_IsHoverd = true;
-            TargetPosition = position;
-            OldPosition = transform.position;
-        }
-
-        [Command] private void CmdUnHover()
-        {
-            IsMoving = true;
-            m_IsHoverd = false;
-            TargetPosition = OldPosition;
-        }
-
-        public void Hover(Transform targetPostion)
-        {
-            CmdHover(targetPostion.position);
+            IsHoverd = true;
+            TargetPosition = targetPosition;
         }
 
         public void UnHover()
         {
-            CmdUnHover();
+            IsMoving = true;
+            IsHoverd = false;
+            TargetPosition = OldPosition;
         }
 
         private void Update()
@@ -49,18 +37,16 @@ namespace cdv
             }
         }
 
-        public bool IsHoverd => m_IsHoverd;
-
         public Card Card;
         [SerializeField] private Text nameText;
         [SerializeField] private Text className;
         [SerializeField] private Text leaderAbility;
         [SerializeField] private Text playAbility;
         [SerializeField] private Image artwork;
-        [SyncVar] bool m_IsHoverd;
-        [SyncVar] bool IsMoving;
+        [SyncVar] public bool IsHoverd;
+        [SyncVar] public bool IsMoving;
         [SyncVar] Vector3 TargetPosition;
-        [SyncVar] Vector3 OldPosition;
+        [SyncVar] public Vector3 OldPosition;
 
         void Start()
         {

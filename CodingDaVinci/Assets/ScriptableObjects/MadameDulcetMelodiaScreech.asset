@@ -16,5 +16,6 @@ MonoBehaviour:
   leaderAbility: 
   artwork: {fileID: 21300000, guid: e5ecbe0619902dc45b581cb25d71204e, type: 3}
   className: 
-  playAbility: "Eine ber\xFChmte S\xE4ngerin hat sich f\xFCr ein Konzert angemeldet"
+  playAbility: "Eine ber\xFChmte S\xE4ngerin hat sich f\xFCr ein Konzert angemeldet.
+    +3 Kultur"
   Type: 3

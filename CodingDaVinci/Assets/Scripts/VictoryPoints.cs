@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Networking;
 
@@ -9,7 +10,8 @@ namespace cdv
         Science,
         Territory,
         Economy,
-        Culture
+        Culture,
+        WinPoint
     }
 
     /// <summary>
@@ -116,7 +118,16 @@ namespace cdv
         #endregion
 
         #region Server Code
-        public void ApplyVictoryPoints(Building.VictoryPoints[] points)
+        public void RemoveVictoryPoints(Building.VictoryPoints[] gainedVictoryPoints)
+        {
+            for(int i = 0; i < gainedVictoryPoints.Length; i++)
+            {
+                gainedVictoryPoints[i].Amount = -gainedVictoryPoints[i].Amount;
+            }
+            ApplyVictoryPoints(gainedVictoryPoints);
+        }
+
+        public void ApplyVictoryPoints(Building.VictoryPoints[] points, bool permanent = true)
         {
             foreach(var item in points)
             {
@@ -124,25 +135,69 @@ namespace cdv
                 {
                     case VictoryPointCategory.Science:
                     {
-                        PermanentScience += item.Amount;
+                        if(permanent)
+                        {
+                            PermanentScience += item.Amount;
+
+                        }
+                        else
+                        {
+                            TempScience += item.Amount;
+                        }
                         break;
                     }
 
                     case VictoryPointCategory.Territory:
                     {
-                        PermanentTerritory += item.Amount;
+                        if(permanent)
+                        {
+                            PermanentTerritory += item.Amount;
+                        }
+                        else
+                        {
+                            TempTerritory += item.Amount;
+                        }
                         break;
                     }
 
                     case VictoryPointCategory.Economy:
                     {
-                        PermanentEconomy += item.Amount;
+                        if(permanent)
+                        {
+                            PermanentEconomy += item.Amount;
+                        }
+                        else
+                        {
+                            TempEconomy += item.Amount;
+                        }
                         break;
                     }
 
                     case VictoryPointCategory.Culture:
                     {
-                        PermanentCulture += item.Amount;
+                        if(permanent)
+                        {
+                            PermanentCulture += item.Amount;
+                        }
+                        else
+                        {
+                            TempCulture += item.Amount;
+                        }
+                        break;
+                    }
+
+                    case VictoryPointCategory.WinPoint:
+                    {
+                        if(permanent)
+                        {
+                            // CLEANUP: Make WinPoints an int an just clamp to 0
+                            WinPoints += (uint)item.Amount;
+                        }
+                        else
+                        {
+                            Debug.LogWarning("Win points can not be added temporarely");
+                        }
+                        
                         break;
                     }
                 }

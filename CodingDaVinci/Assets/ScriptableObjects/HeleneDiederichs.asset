@@ -17,8 +17,8 @@ MonoBehaviour:
     bedeutenden deutschen Schriftstellerin. +1 Kultur pro Runde
   artwork: {fileID: 21300000, guid: 7675db5f06d9542459980c2781b8963b, type: 3}
   className: Dichterinnen
-  playAbility: "\u201EWie versteht sie es, Landschaftsbilder von wahrhaft suggestiver
-    Kraft zu zeichnen. Mit wenigen Strichen stellt sie die Grundlinien fest, aus denen
-    dann mit unnachahmlicher Sicherheit die betreffende Morgen-, Mittags- oder Abendstimmung
-    herausw\xE4chst.\u201C \u2013 Theodor Klaiber, 1907. +2 Kultur"
+  playAbility: "Wie versteht sie es, Landschaftsbilder von wahrhaft suggestiver Kraft
+    zu zeichnen. Mit wenigen Strichen stellt sie die Grundlinien fest, aus denen dann
+    mit unnachahmlicher Sicherheit die betreffende Morgen-, Mittags- oder Abendstimmung
+    herausw\xE4chst. +2 Kultur"
   Type: 0

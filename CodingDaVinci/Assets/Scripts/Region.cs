@@ -31,12 +31,21 @@ namespace cdv
 #pragma warning restore 618
         {
             Assert.IsTrue(isClient, "Run RpcSetOwner only clientside");
+            if(Owner && Building)
+            {
+                Owner.VictoryPoints.RemoveVictoryPoints(Building.GainedVictoryPoints);
+            }
 #pragma warning disable 618
-            var owner = ClientScene.FindLocalObject(ownerId).GetComponent<Player>();
+            if(ownerId != NetworkInstanceId.Invalid)
+            {
+                var owner = ClientScene.FindLocalObject(ownerId).GetComponent<Player>();
 #pragma warning restore 618
-            Owner = owner;
-            // TODO: Check if the region already has an owner and/or a building on it and then
-            // remove and add the building values to the new owner 
+                Owner = owner;
+            }
+            else
+            {
+                Owner = null;
+            }
         }
 
 #pragma warning disable 618
@@ -93,6 +102,7 @@ namespace cdv
 
         public Building Building;
         public Player Owner;
+        // CLEANUP: We have a maximum of 6 neighbours per region. Does this have to be 200 large??
         [SerializeField] private Region[] m_NeighbourRegions = new Region[200];
         [SerializeField] private RegionProperty[] Properties; 
 

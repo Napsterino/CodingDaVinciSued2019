@@ -60,6 +60,7 @@ namespace cdv
             }
 
             owner.State = PlayerState.ConquerRegion;
+            owner.RegionGetsAddedToPlayer = RegionGetsAddedToPlayer;
             owner.ConquerRequirements = new ConquerRequirements
             {
                 Requirements = Requirements
@@ -67,5 +68,6 @@ namespace cdv
         }
 
         [SerializeField] private ConquerRequirement[] Requirements;
+        [SerializeField] bool RegionGetsAddedToPlayer = true;
     }
 }

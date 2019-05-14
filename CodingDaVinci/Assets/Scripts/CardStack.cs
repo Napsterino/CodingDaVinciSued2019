@@ -34,8 +34,11 @@ namespace cdv
 #pragma warning disable 618
                 var player = NetworkServer.FindLocalObject(playerId).GetComponent<Player>();
 #pragma warning restore 618
-                player.AddCardToHand(Cards[0]);
+                // NOTE: Its important to remove the card before adding it to the palyer hand
+                // because if the card is an event card it might want to access the main stack
+                // and than it would access itself
                 Cards.RemoveAt(0);
+                player.AddCardToHand(Cards[0]);
                 return true;
             }
             else
@@ -44,7 +47,8 @@ namespace cdv
             }
         }
 
-
+        // TODO: Maybe make a somewhat smarter algorithm it feels like the cards that get
+        // drawn arent distributed very well
         public void Shuffle(int iterations)
         {
             Assert.IsTrue(isServer, "Shuffle is only allowed to get called serverside");
@@ -70,7 +74,8 @@ namespace cdv
         #endregion
 
         #region Shared Code
-        public Transform Graveyard { get; protected set; }
+        public Transform Graveyard => m_Graveyard;
+        [SerializeField] Transform m_Graveyard;
         #endregion
     }
 }

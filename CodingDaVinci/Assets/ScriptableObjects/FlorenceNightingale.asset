@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: FlorenceNightingale
   m_EditorClassIdentifier: 
   name: Florence Nightingale
-  leaderAbility: "Ihrer Reformen des Pflegewesens und der Gesundheitsf\xFCrsorge zeigt
+  leaderAbility: "Ihre Reformen des Pflegewesens und der Gesundheitsf\xFCrsorge zeigen
     wahre Wunder f\xFCr die Gesundheit der Arbeiter. Ein fehlender Arm ist kein Grund
-    mehr nicht in die Fabrik zu gehen. Generiere jede Runde zwei zus\xE4tzliche Ressourcen."
+    mehr nicht in die Fabrik zu gehen. Jede Runde zwei zus\xE4tzliche Ressourcen."
   artwork: {fileID: 21300000, guid: 2c70eb944614a8a40a9b18d77fe40ada, type: 3}
   className: Soziale Frauen
   playAbility: "Ihre F\xFCrsorge in den Lazaretten der Schlachtfelder gibt den Soldaten

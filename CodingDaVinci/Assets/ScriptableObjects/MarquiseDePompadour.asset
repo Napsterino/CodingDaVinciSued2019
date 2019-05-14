@@ -13,11 +13,10 @@ MonoBehaviour:
   m_Name: MarquiseDePompadour
   m_EditorClassIdentifier: 
   name: Marquise de Pompadour
-  leaderAbility: "Den Einfluss den sie mit den Waffen einer Frau erlangte, nutzte
-    sie, um die milit\xE4rische F\xFChrung,  Gesetze oder auch strategische Planungen
-    zu beeinflussen. Auch den Porzellanverkauf aus k\xF6niglicher Produktion konnte
-    sie durch Patriotismus anheizen. +1 Baustoffe und +2 Einfluss pro Runde \u201ENach
-    uns die Sintflut\u201C. Kann keine Friedensabkommen annehmen."
+  leaderAbility: "Den Einfluss den sie mit den Waffen einer Frau erlangte nutzte sie
+    um die milit\xE4rische F\xFChrung und Gesetze zu beeinflussen. +1 Baustoffe und
+    +2 Einfluss pro Runde \u201ENach uns die Sintflut\u201C Kann keine Friedensabkommen
+    annehmen."
   artwork: {fileID: 21300000, guid: d4d25a29bcc196d489c2724d18f956e7, type: 3}
   className: Frauen der Politik
   playAbility: "Durch ihre \xFCberzeugenden Argumente kannst du einen anderen Spieler
