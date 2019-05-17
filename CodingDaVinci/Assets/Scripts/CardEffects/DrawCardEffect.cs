@@ -13,6 +13,13 @@ namespace cdv
     /// </summary>
     public sealed class DrawCardEffect : CardEffect
     {
+        public override bool IsAsyncron => false;
+
+        public override bool IsExecutionPossible(Player executer)
+        {
+            return true;
+        }
+
         public override void Execute(Player owner)
         {
             if(StackType == CardStackType.MainStack)

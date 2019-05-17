@@ -169,8 +169,8 @@ GameObject:
   - component: {fileID: 630509952883745385}
   - component: {fileID: 630509952883745362}
   - component: {fileID: 3837443561229075170}
-  - component: {fileID: 1438718455220089585}
   - component: {fileID: 2419487679682987310}
+  - component: {fileID: 9017967772770198531}
   m_Layer: 5
   m_Name: Tech
   m_TagString: Card
@@ -314,28 +314,6 @@ MonoBehaviour:
     i15: 0
   m_ServerOnly: 0
   m_LocalPlayerAuthority: 0
---- !u!114 &1438718455220089585
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 630509952883745384}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1768714887, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_TransformSyncMode: 1
-  m_SendInterval: 0.1
-  m_SyncRotationAxis: 7
-  m_RotationSyncCompression: 0
-  m_SyncSpin: 0
-  m_MovementTheshold: 0.001
-  m_VelocityThreshold: 0.0001
-  m_SnapThreshold: 5
-  m_InterpolateRotation: 1
-  m_InterpolateMovement: 0.5
 --- !u!65 &2419487679682987310
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -349,6 +327,21 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 500, y: 800, z: 0.01}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &9017967772770198531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 630509952883745384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff5159a60fcffd245bfc7f92840dcdb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SmoothSpeed: 10
+  TeleportThreshold: 1
+  Threshold: 0.001
 --- !u!1 &630509952971971184
 GameObject:
   m_ObjectHideFlags: 0

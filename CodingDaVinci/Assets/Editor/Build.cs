@@ -46,8 +46,14 @@ namespace cdv
             {
                 UnityEngine.Debug.Log("Build failed");
             }
+        }
 
-            
+        [MenuItem("Build/Run Previous Build #F5")]
+        public static void RunPreviousBuild()
+        {
+            var gameInstance = new Process();
+            gameInstance.StartInfo.FileName = $"{Application.dataPath}/../../build/win_x64/cdv.exe";
+            gameInstance.Start();
         }
     }
 }

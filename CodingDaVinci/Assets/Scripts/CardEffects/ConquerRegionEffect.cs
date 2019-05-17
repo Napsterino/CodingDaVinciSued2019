@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace cdv
 {
@@ -6,7 +6,7 @@ namespace cdv
     {
         public ConquerRequirement[] Requirements;
     }
-
+    
     public enum ConquerRequirement
     {
         MustBeSeaRegion,
@@ -15,59 +15,122 @@ namespace cdv
         MustBeFree,
         MustBeOccupiedByOtherPlayer
     }
-
-    public sealed class ConquerRegionEffect : CardEffect
+    
+    public class ConquerRegionEffect : CardEffect
     {
-        public override void Execute(Player owner)
+        public override bool IsAsyncron => true;
+        
+        public override bool IsExecutionPossible(Player executor)
         {
-            // TODO: Check here if certain Requirements can not be fulfilled.
-            // If that is the case do not play the card at all
-            foreach(var element in Requirements)
+            var allRegions = FindObjectsOfType<Region>();
+            foreach(var region in allRegions)
             {
-                switch(element)
+                if(FulfillsRegionRequirements(region, Requirements, executor))
                 {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        protected bool FulfillsRegionRequirements(Region region, ConquerRequirement[] requirements,
+                                                  Player effectExecutor)
+        {
+            if(region.IsStartRegion())
+            {
+                return false;
+            }
+            
+            foreach(var requirement in requirements)
+            {
+                switch(requirement)
+                {
+                    case ConquerRequirement.MustBeFree:
+                    {
+                        if(region.Owner != null)
+                        {
+                            return false;
+                        }
+                        break;
+                    }
+                    
+                    case ConquerRequirement.MustBeNoSeaRegion:
+                    {
+                        if(region.HasSeaAccess())
+                        {
+                            return false;
+                        }
+                        break;
+                    }
+                    
                     case ConquerRequirement.MustBeOccupiedByOtherPlayer:
                     {
-                        bool regionAvailable = false;
-                        foreach(var player in owner.GameManager.Players)
+                        if(region.Owner == effectExecutor || region.Owner == null)
                         {
-                            if(player != owner)
+                            return false;
+                        }
+                        break;
+                    }
+                    
+                    case ConquerRequirement.MustBeSeaRegion:
+                    {
+                        if(!region.HasSeaAccess())
+                        {
+                            return false;
+                        }
+                        break;
+                    }
+                    
+                    case ConquerRequirement.MustHaveNoOccupiedNeighbours:
+                    {
+                        bool foundOwnedNeighbour = false;
+                        foreach(var neighbour in region.NeighbourRegions)
+                        {
+                            if(neighbour.Owner != null)
                             {
-                                foreach(var region in player.OwnedRegions.Values)
-                                {
-                                    if(!region.IsStartRegion())
-                                    {
-                                        regionAvailable = true;
-                                        break;
-                                    }
-                                }
-                                
-                                if(regionAvailable)
-                                {
-                                    break;
-                                }
+                                foundOwnedNeighbour = true;
+                                break;
                             }
                         }
-
-                        if(!regionAvailable)
+                        
+                        if(foundOwnedNeighbour)
                         {
-                            return;
+                            return false;
                         }
-
+                        break;
+                    }
+                    
+                    default:
+                    {
+                        Debug.LogError($"{requirement} is not handled");
                         break;
                     }
                 }
             }
-
-            owner.State = PlayerState.ConquerRegion;
-            owner.RegionGetsAddedToPlayer = RegionGetsAddedToPlayer;
-            owner.ConquerRequirements = new ConquerRequirements
+            
+            return true;
+        }
+        
+        public override void Execute(Player owner)
+        {
+            if(IsExecutionPossible(owner))
+            {
+                SetPlayerToConquerRegion(owner);
+            }
+        }
+        
+        protected void SetPlayerToConquerRegion(Player player)
+        {
+            player.State = PlayerState.ConquerRegion;
+            player.RegionGetsAddedToPlayer = RegionGetsAddedToPlayer;
+            player.ConquerRequirements = new ConquerRequirements
             {
                 Requirements = Requirements
             };
         }
-
-        [SerializeField] private ConquerRequirement[] Requirements;
+        
+        [SerializeField] protected ConquerRequirement[] Requirements;
         [SerializeField] bool RegionGetsAddedToPlayer = true;
     }
 }

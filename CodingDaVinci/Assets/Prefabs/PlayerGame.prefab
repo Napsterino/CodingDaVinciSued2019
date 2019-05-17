@@ -1,5 +1,35 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &374115597591677419
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4199716785568417022}
+  m_Layer: 0
+  m_Name: EventCardSlot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4199716785568417022
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 374115597591677419}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1, y: 2.5, z: 10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 5444778384279501529}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &563403996366744790
 GameObject:
   m_ObjectHideFlags: 0
@@ -34,6 +64,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8955198409335092657}
+  - {fileID: 4199716785568417022}
+  - {fileID: 5833003795849352736}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -99,14 +131,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4044dca2a36b07e4599ea4ab92345bff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowDiplomacy: 0
+  PopulateRelationshipView: 0
+  ShowTrading: 0
   NextRegionCostFactor: 1
   State: 0
   KindergardenResources: 0
   SelectedResourceAmount: 0
+  BuildingToBuild: 
+  ShowBuildingOverview: 0
   RandomResourcesOnTurnStart: 0
-  OldRelationshipState: 0
   NewRelationshipState: 0
+  RegionGetsAddedToPlayer: 0
+  PlayerName: 
+  PlayerColor: {r: 0, g: 0, b: 0, a: 0}
   AnchorSlot: {fileID: 8955198409335092657}
+  EventCardSlot: {fileID: 4199716785568417022}
+  LeaderCardAnchor: {fileID: 5833003795849352736}
 --- !u!114 &5834224789353752465
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119,6 +160,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40b7c9d13f1203d488f184e018c8ed15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ConstructionMaterialOrTechnologyPoints: 0
 --- !u!114 &7272194180030860906
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,6 +175,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HasDoneDiplomacyAction: 0
   ReceivedRequest: 0
+  UpdateGUIForRequest: 0
 --- !u!114 &1653509678975605903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -165,7 +208,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8955198409335092657}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: AnchorSlot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -179,9 +222,39 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2479921696176202675}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.5, z: 4}
+  m_LocalPosition: {x: 0, y: 2.5, z: 4.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 5444778384279501529}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5631681787599062432
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5833003795849352736}
+  m_Layer: 0
+  m_Name: LeaderCardSlot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5833003795849352736
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5631681787599062432}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -5, y: 0.5, z: 7}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 5444778384279501529}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

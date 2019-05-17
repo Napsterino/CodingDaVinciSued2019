@@ -66,6 +66,7 @@ namespace cdv
             GUILayout.EndArea();
         }
 
+#if !NEW_GUI
         private void OnGUI()
         {
             if(isLocalPlayer)
@@ -73,6 +74,7 @@ namespace cdv
                 PrintStats(new Rect(20, 20, 200, 200));
             }
         }
+#endif
 
         private void Update()
         {

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Networking;
@@ -9,16 +9,16 @@ namespace cdv
     public class CardStack : NetworkBehaviour
 #pragma warning restore 618
     {
-        #region Client Code
+#region Client Code
         public override void PreStartClient()
         {
             base.PreStartClient();
             Cards = new List<CardDisplay>(20);
             Cards.AddRange(GetComponentsInChildren<CardDisplay>());
         }
-        #endregion
-
-        #region Server Code
+#endregion
+        
+#region Server Code
         /// <summary>
         /// Takes the card from the top of the stack and assigns it to a player
         /// </summary>
@@ -37,8 +37,11 @@ namespace cdv
                 // NOTE: Its important to remove the card before adding it to the palyer hand
                 // because if the card is an event card it might want to access the main stack
                 // and than it would access itself
+                CardDisplay card = Cards[0];
+                Debug.Log($"Top Card is {card.name}");
+                Debug.Log($"Send top card to player {playerId}");
                 Cards.RemoveAt(0);
-                player.AddCardToHand(Cards[0]);
+                player.AddCardToHand(card);
                 return true;
             }
             else
@@ -46,7 +49,7 @@ namespace cdv
                 return false;
             }
         }
-
+        
         // TODO: Maybe make a somewhat smarter algorithm it feels like the cards that get
         // drawn arent distributed very well
         public void Shuffle(int iterations)
@@ -62,20 +65,20 @@ namespace cdv
                     {
                         indexTwo = Random.Range(0, Cards.Count);
                     }
-
+                    
                     var tmp = Cards[indexOne];
                     Cards[indexOne] = Cards[indexTwo];
                     Cards[indexTwo] = tmp;
                 }
             }
         }
-
+        
         protected List<CardDisplay> Cards;
-        #endregion
-
-        #region Shared Code
+#endregion
+        
+#region Shared Code
         public Transform Graveyard => m_Graveyard;
         [SerializeField] Transform m_Graveyard;
-        #endregion
+#endregion
     }
 }

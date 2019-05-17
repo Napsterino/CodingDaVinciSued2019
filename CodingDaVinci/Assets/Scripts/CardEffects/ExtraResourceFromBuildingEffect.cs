@@ -5,6 +5,13 @@ namespace cdv
 {
     public sealed class ExtraResourceFromBuildingEffect : CardEffect
     {
+        public override bool IsAsyncron => false;
+
+        public override bool IsExecutionPossible(Player executer)
+        {
+            return true;
+        }
+
         public override void Execute(Player owner)
         {
             if(owner.BuildingResourcesBuffs.ContainsKey(BuildingType))

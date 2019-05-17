@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Networking;
@@ -7,7 +7,7 @@ namespace cdv
 {
     public sealed class MainCardStack : CardStack
     {
-        #region Client Code
+#region Client Code
 #pragma warning disable 618
         [ClientRpc] void RpcClearCardsHoldedByPlayer(NetworkInstanceId playerId)
 #pragma warning restore 618
@@ -15,7 +15,7 @@ namespace cdv
             Assert.IsTrue(isClient, "Only run RpcClearCardsHoldedByPlayer on Client");
             CardsHoldedByPlayer[playerId].Clear();
         }
-
+        
 #pragma warning disable 618
         [ClientRpc] void RpcAddCard(NetworkInstanceId playerId, NetworkInstanceId cardId)
 #pragma warning restore 618
@@ -33,9 +33,9 @@ namespace cdv
                 CardsHoldedByPlayer[playerId].Add(card);
             }
         }
-        #endregion
-
-        #region Server Code
+#endregion
+        
+#region Server Code
 #pragma warning disable 618
         public void SendCardToPlayer(NetworkInstanceId cardId, NetworkInstanceId playerId)
 #pragma warning restore 618
@@ -54,14 +54,14 @@ namespace cdv
             }
             RpcClearCardsHoldedByPlayer(playerId);
         }
-
+        
         private void MoveBackOnStack(CardDisplay card)
         {
             card.transform.position = new Vector3(0, -2, 0);
             card.transform.rotation = Quaternion.Euler(270, 0, 0);
             Cards.Add(card);
         }
-
+        
         /// <summary>
         /// Requests leader cards from the MainCardStack inorder to choose one of them
         /// </summary>
@@ -90,13 +90,13 @@ namespace cdv
                 x += 3f;
             }
         }
-        #endregion
-
-        #region Shared Code
+#endregion
+        
+#region Shared Code
 #pragma warning disable 618
         public Dictionary<NetworkInstanceId, List<CardDisplay>> CardsHoldedByPlayer = new Dictionary<NetworkInstanceId, List<CardDisplay>>();
 #pragma warning restore 618
-        #endregion
-
+#endregion
+        
     }
 }

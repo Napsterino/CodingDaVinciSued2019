@@ -41,10 +41,14 @@ namespace cdv
                 var owner = ClientScene.FindLocalObject(ownerId).GetComponent<Player>();
 #pragma warning restore 618
                 Owner = owner;
+                Color color = owner.PlayerColor;
+                color.a = 0.3f;
+                RegionOwnerOverlay.GetComponent<SpriteRenderer>().color = color;
             }
             else
             {
                 Owner = null;
+                RegionOwnerOverlay.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
             }
         }
 
@@ -104,7 +108,8 @@ namespace cdv
         public Player Owner;
         // CLEANUP: We have a maximum of 6 neighbours per region. Does this have to be 200 large??
         [SerializeField] private Region[] m_NeighbourRegions = new Region[200];
-        [SerializeField] private RegionProperty[] Properties; 
+        [SerializeField] private RegionProperty[] Properties;
+        [SerializeField] GameObject RegionOwnerOverlay;
 
         public const int FREE_PRICE = 3;
         public const int ENEMY_OCCUPIED_PRICE = 9;

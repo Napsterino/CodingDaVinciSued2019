@@ -21,20 +21,20 @@ namespace cdv
 #pragma warning restore 618
     {
         #region Shared Code
-        #pragma warning disable 618
+#pragma warning disable 618
         public struct Relationship
         {
             public NetworkInstanceId PartnerId;
-            public RelationshipState State; 
+            public RelationshipState State;
         };
 
         public class RelationShips : SyncListStruct<Relationship>
         {
             public int Find(NetworkInstanceId playerId)
             {
-                for(int i = 0; i < Count; i++)
+                for (int i = 0; i < Count; i++)
                 {
-                    if(this[i].PartnerId == playerId)
+                    if (this[i].PartnerId == playerId)
                     {
                         return i;
                     }
@@ -46,12 +46,12 @@ namespace cdv
             public List<Relationship> FindAll(RelationshipState relationship)
             {
                 var list = new List<Relationship>();
-                foreach(var element in this)
+                foreach (var element in this)
                 {
-                    if(element.State == relationship)
+                    if (element.State == relationship)
                     {
                         list.Add(element);
-                    }                    
+                    }
                 }
                 return list;
             }
@@ -59,6 +59,7 @@ namespace cdv
 
         [SyncVar, HideInInspector] public bool HasDoneDiplomacyAction = false;
         [SyncVar, HideInInspector] public bool ReceivedRequest = false;
+        [SyncVar, HideInInspector] public bool UpdateGUIForRequest = false;
         [SyncVar] private NetworkInstanceId PlayerOfRequest;
         [SyncVar] private NetworkInstanceId SelectedPlayer = NetworkInstanceId.Invalid;
         [SyncVar] private RelationshipState RequestType;
@@ -75,12 +76,12 @@ namespace cdv
         public void DrawRequestUI()
         {
             Assert.IsTrue(isLocalPlayer, "Only run DrawPeaceRequestUI on the LocalPlayer");
-            if(ReceivedWarAssistanceRequest)
+            if (ReceivedWarAssistanceRequest)
             {
                 GUILayout.BeginArea(new Rect(Screen.width / 2 - 300, Screen.height / 2 - 100, 600, 200));
                 GUILayout.Label($"Ihr Bündnisparter {PlayerOfRequest} hat {Enemy} den Krieg erklärt. Möchten sie zu ihrem Bündnis stehen");
                 GUILayout.BeginHorizontal();
-                if(GUILayout.Button("Ja"))
+                if (GUILayout.Button("Ja"))
                 {
                     CmdSendDeclarationOfWar(Enemy);
 #pragma warning disable 618
@@ -90,7 +91,7 @@ namespace cdv
                     ReceivedRequest = false;
                     ReceivedWarAssistanceRequest = false;
                 }
-                if(GUILayout.Button("Nein"))
+                if (GUILayout.Button("Nein"))
                 {
                     int index = PlayerRelationships.Find(PlayerOfRequest);
                     var relationship = PlayerRelationships[index];
@@ -116,26 +117,97 @@ namespace cdv
             else
             {
                 string request = "";
-                switch(RequestType)
+                switch (RequestType)
                 {
                     case RelationshipState.Peace:
-                    { request = "Frieden schließen"; break; }
+                        { request = "Frieden schließen"; break; }
                     case RelationshipState.TradingAgreement:
-                    { request = "ein Handelsabkommen abschließen"; break; }
+                        { request = "ein Handelsabkommen abschließen"; break; }
                 }
                 GUILayout.BeginArea(new Rect(Screen.width / 2 - 100, Screen.height / 2 - 100, 200, 200));
                 GUILayout.Label($"Spieler {PlayerOfRequest} möchte {request}");
                 GUILayout.BeginHorizontal();
-                if(GUILayout.Button("Akzeptieren"))
+                if (GUILayout.Button("Akzeptieren"))
                 {
                     CmdAcceptRequest(RequestType);
                 }
-                if(GUILayout.Button("Ablehenen"))
+                if (GUILayout.Button("Ablehnen"))
                 {
                     CmdDeclineRequest();
                 }
                 GUILayout.EndHorizontal();
                 GUILayout.EndArea();
+            }
+        }
+
+        public void SetupRequestUI()
+        {
+            Assert.IsTrue(isLocalPlayer, "Only run DrawPeaceRequestUI on the LocalPlayer");
+            if (ReceivedWarAssistanceRequest)
+            {
+                MainUIRoot.Instance.Diplomacy.DisplayPrompt($"Ihr Bündnisparter {PlayerOfRequest} hat {Enemy} den Krieg erklärt. Möchten sie zu ihrem Bündnis stehen", () =>
+                {
+                    CmdSendDeclarationOfWar(Enemy);
+#pragma warning disable 618
+                    Enemy = NetworkInstanceId.Invalid;
+                    SelectedPlayer = NetworkInstanceId.Invalid;
+#pragma warning restore 618
+                    ReceivedRequest = false;
+                    ReceivedWarAssistanceRequest = false;
+                    Player.LocalPlayer.ShowDiplomacy = false;
+                }, () =>
+                {
+                    int index = PlayerRelationships.Find(PlayerOfRequest);
+                    var relationship = PlayerRelationships[index];
+                    relationship.State = RelationshipState.Peace;
+                    PlayerRelationships[index] = relationship;
+#pragma warning disable 618
+                    var ally = NetworkServer.FindLocalObject(PlayerOfRequest).GetComponent<Diplomacy>();
+#pragma warning restore 618
+                    index = ally.PlayerRelationships.Find(netId);
+                    relationship = ally.PlayerRelationships[index];
+                    relationship.State = RelationshipState.Peace;
+                    ally.PlayerRelationships[index] = relationship;
+#pragma warning disable 618
+                    Enemy = NetworkInstanceId.Invalid;
+                    SelectedPlayer = NetworkInstanceId.Invalid;
+#pragma warning restore 618
+                    ReceivedWarAssistanceRequest = false;
+                    ReceivedRequest = false;
+                    Player.LocalPlayer.ShowDiplomacy = false;
+                });
+            }
+            else
+            {
+                string request = "";
+                switch (RequestType)
+                {
+                    case RelationshipState.Peace:
+                        { request = "Frieden schließen"; break; }
+                    case RelationshipState.TradingAgreement:
+                        { request = "ein Handelsabkommen abschließen"; break; }
+                    case RelationshipState.Alliance:
+                        { request = "ein Bündnis abschließen"; break; }
+                }
+                string playerName;
+                Player player = GameManager.Instance.GetPlayerOfId(PlayerOfRequest);
+                if (player != null)
+                {
+                    playerName = player.ToString();
+                }
+                else
+                {
+                    playerName = PlayerOfRequest.ToString();
+                }
+                MainUIRoot.Instance.Diplomacy.DisplayPrompt($"Spieler {playerName} möchte {request}", () =>
+                {
+                    CmdAcceptRequest(RequestType);
+                    Player.LocalPlayer.ShowDiplomacy = false;
+                }, () =>
+                {
+                    CmdDeclineRequest();
+                    Player.LocalPlayer.ShowDiplomacy = false;
+                });
             }
         }
 
@@ -149,16 +221,16 @@ namespace cdv
             bool keepDrawing = true;
             GUILayout.BeginArea(new Rect(Screen.width / 2 - 200, Screen.height / 2 - 200, 400, 400));
 #pragma warning disable 618
-            if(SelectedPlayer != NetworkInstanceId.Invalid)
+            if (SelectedPlayer != NetworkInstanceId.Invalid)
 #pragma warning restore 618
             {
                 int index = PlayerRelationships.Find(SelectedPlayer);
-                if(index != -1)
+                if (index != -1)
                 {
                     var relationship = PlayerRelationships[index];
-                    if(relationship.State == RelationshipState.War)
+                    if (relationship.State == RelationshipState.War)
                     {
-                        if(GUILayout.Button("Frieden schließen"))
+                        if (GUILayout.Button("Frieden schließen"))
                         {
                             CmdSendPeaceRequest(SelectedPlayer);
                             keepDrawing = false;
@@ -167,17 +239,17 @@ namespace cdv
 #pragma warning restore 618
                         }
                     }
-                    else if(relationship.State == RelationshipState.TradingAgreement)
+                    else if (relationship.State == RelationshipState.TradingAgreement)
                     {
-                        if(GUILayout.Button("Bündnis eingehen"))
+                        if (GUILayout.Button("Bündnis eingehen"))
                         {
                             CmdRequestAlliance(SelectedPlayer);
                         }
-                        if(GUILayout.Button("Handelsabkommen auflösen"))
+                        if (GUILayout.Button("Handelsabkommen auflösen"))
                         {
                             CmdBreakTradingAgreement(SelectedPlayer);
                         }
-                        if(GUILayout.Button("Krieg erklären"))
+                        if (GUILayout.Button("Krieg erklären"))
                         {
                             CmdSendDeclarationOfWar(SelectedPlayer);
                             keepDrawing = false;
@@ -186,28 +258,28 @@ namespace cdv
 #pragma warning restore 618
                         }
                     }
-                    else if(relationship.State == RelationshipState.Alliance)
+                    else if (relationship.State == RelationshipState.Alliance)
                     {
-                        if(GUILayout.Button("Bündnis aufkündigen"))
+                        if (GUILayout.Button("Bündnis aufkündigen"))
                         {
                             CmdBreakAlliance(SelectedPlayer);
                         }
-                        if(GUILayout.Button("Krieg erklären"))
+                        if (GUILayout.Button("Krieg erklären"))
                         {
                             CmdSendDeclarationOfWar(SelectedPlayer);
                         }
                     }
-                    else if(relationship.State == RelationshipState.Peace)
+                    else if (relationship.State == RelationshipState.Peace)
                     {
-                        if(GUILayout.Button("Handelsabkommen unterzeichnen"))
+                        if (GUILayout.Button("Handelsabkommen unterzeichnen"))
                         {
                             CmdRequestTradingAgreement(SelectedPlayer);
                         }
-                        if(GUILayout.Button("Bündnis eingehen"))
+                        if (GUILayout.Button("Bündnis eingehen"))
                         {
                             CmdRequestAlliance(SelectedPlayer);
                         }
-                        if(GUILayout.Button("Krieg erklären"))
+                        if (GUILayout.Button("Krieg erklären"))
                         {
                             CmdSendDeclarationOfWar(SelectedPlayer);
                             keepDrawing = false;
@@ -219,15 +291,15 @@ namespace cdv
                 }
                 else
                 {
-                    if(GUILayout.Button("Handelsabkommen unterzeichnen"))
+                    if (GUILayout.Button("Handelsabkommen unterzeichnen"))
                     {
                         CmdRequestTradingAgreement(SelectedPlayer);
                     }
-                    if(GUILayout.Button("Bündnis eingehen"))
+                    if (GUILayout.Button("Bündnis eingehen"))
                     {
                         CmdRequestAlliance(SelectedPlayer);
                     }
-                    if(GUILayout.Button("Krieg erklären"))
+                    if (GUILayout.Button("Krieg erklären"))
                     {
                         CmdSendDeclarationOfWar(SelectedPlayer);
                         keepDrawing = false;
@@ -240,11 +312,11 @@ namespace cdv
             else
             {
                 GUILayout.BeginHorizontal();
-                foreach(var player in GetComponent<Player>().GameManager.Players)
+                foreach (var player in GetComponent<Player>().GameManager.Players)
                 {
-                    if(player.netId != netId)
+                    if (player.netId != netId)
                     {
-                        if(GUILayout.Button($"Player: {player.netId}"))
+                        if (GUILayout.Button($"Player: {player.netId}"))
                         {
                             SelectedPlayer = player.netId;
                         }
@@ -252,10 +324,10 @@ namespace cdv
                 }
                 GUILayout.EndHorizontal();
             }
-            if(GUILayout.Button("Zurück"))
+            if (GUILayout.Button("Zurück"))
             {
 #pragma warning disable 618
-                if(SelectedPlayer != NetworkInstanceId.Invalid)
+                if (SelectedPlayer != NetworkInstanceId.Invalid)
                 {
                     SelectedPlayer = NetworkInstanceId.Invalid;
 #pragma warning restore 618
@@ -267,6 +339,128 @@ namespace cdv
             }
             GUILayout.EndArea();
             return keepDrawing;
+        }
+
+        /// <summary>
+        /// Draws the ui for taking basic diplomatic actions
+        /// </summary>
+        /// <returns>true if the ui shall be drawn again next frame, otherwise false</returns>
+#pragma warning disable 618
+        public SimpleDelegate SetupDiplomacyUI(Player selectedPlayer)
+#pragma warning restore 618
+        {
+            SelectedPlayer = selectedPlayer.netId;
+
+            SimpleDelegate startWar = null;
+            SimpleDelegate endWar = null;
+            SimpleDelegate offerAlliance = null;
+            SimpleDelegate endAlliance = null;
+            SimpleDelegate offerTrading = null;
+            SimpleDelegate endTrading = null;
+
+#pragma warning disable 618
+            if (SelectedPlayer != NetworkInstanceId.Invalid)
+#pragma warning restore 618
+            {
+                int index = PlayerRelationships.Find(SelectedPlayer);
+                Relationship relationship;
+                if (index != -1)
+                {
+                    relationship = PlayerRelationships[index];
+                }
+                else
+                {
+                    relationship = new Relationship() { State = RelationshipState.Peace, PartnerId = SelectedPlayer };
+                }
+
+                if (relationship.State == RelationshipState.War)
+                {
+                    endWar = () =>
+                    {
+                        CmdSendPeaceRequest(SelectedPlayer);
+#pragma warning disable 618
+                        SelectedPlayer = NetworkInstanceId.Invalid;
+#pragma warning restore 618
+                        MainUIRoot.Instance.Diplomacy.DisableDiplomacy();
+                    };
+                }
+                else if (relationship.State == RelationshipState.TradingAgreement)
+                {
+                    offerAlliance = () =>
+                    {
+                        CmdRequestAlliance(SelectedPlayer);
+                    };
+                    endTrading = () =>
+                    {
+                        CmdBreakTradingAgreement(SelectedPlayer);
+                    };
+                    startWar = () =>
+                    {
+                        CmdSendDeclarationOfWar(SelectedPlayer);
+#pragma warning disable 618
+                        SelectedPlayer = NetworkInstanceId.Invalid;
+#pragma warning restore 618
+                        MainUIRoot.Instance.Diplomacy.DisableDiplomacy();
+                    };
+                }
+                else if (relationship.State == RelationshipState.Alliance)
+                {
+                    endAlliance = () =>
+                    {
+                        CmdBreakAlliance(SelectedPlayer);
+                    };
+                    startWar = () =>
+                    {
+                        CmdSendDeclarationOfWar(SelectedPlayer);
+                    };
+                }
+                else if (relationship.State == RelationshipState.Peace)
+                {
+                    offerTrading = () =>
+                    {
+                        CmdRequestTradingAgreement(SelectedPlayer);
+                    };
+                    offerAlliance = () =>
+                    {
+                        CmdRequestAlliance(SelectedPlayer);
+                    };
+                    startWar = () =>
+                    {
+                        CmdSendDeclarationOfWar(SelectedPlayer);
+#pragma warning disable 618
+                        SelectedPlayer = NetworkInstanceId.Invalid;
+#pragma warning restore 618
+                        MainUIRoot.Instance.Diplomacy.DisableDiplomacy();
+                    };
+                }
+            }
+            else
+            {
+                offerTrading = () =>
+                {
+                    CmdRequestTradingAgreement(SelectedPlayer);
+                };
+                offerAlliance = () =>
+                {
+                    CmdRequestAlliance(SelectedPlayer);
+                };
+                startWar = () =>
+                {
+                    CmdSendDeclarationOfWar(SelectedPlayer);
+#pragma warning disable 618
+                    SelectedPlayer = NetworkInstanceId.Invalid;
+#pragma warning restore 618
+                    MainUIRoot.Instance.Diplomacy.DisableDiplomacy();
+                };
+            }
+
+#pragma warning disable 618
+            MainUIRoot.Instance.Diplomacy.DisplayDiplomacyPanel(selectedPlayer.PlayerName, startWar, endWar, offerAlliance, endAlliance, offerTrading, endTrading);
+#pragma warning restore 618
+            return () =>
+            {
+                MainUIRoot.Instance.Diplomacy.DisableDiplomacy();
+            };
         }
         #endregion
 
@@ -285,7 +479,8 @@ namespace cdv
         }
 
 #pragma warning disable 618
-        [Command] public void CmdSetRelation(NetworkInstanceId partnerId, RelationshipState newState)
+        [Command]
+        public void CmdSetRelation(NetworkInstanceId partnerId, RelationshipState newState)
 #pragma warning restore 618
         {
             SetRelationship(partnerId, newState);
@@ -296,12 +491,13 @@ namespace cdv
         /// </summary>
         /// <param name="enemyId">player to declare war to</param>
 #pragma warning disable 618
-        [Command] private void CmdSendDeclarationOfWar(NetworkInstanceId enemyId)
+        [Command]
+        private void CmdSendDeclarationOfWar(NetworkInstanceId enemyId)
         {
             Assert.IsTrue(isServer, "Only run CmdSendDeclarationOfWar on server");
             var enemy = NetworkServer.FindLocalObject(enemyId).GetComponent<Diplomacy>();
             int index = enemy.PlayerRelationships.Find(netId);
-            if(index != -1)
+            if (index != -1)
             {
                 var relationship = enemy.PlayerRelationships[index];
                 relationship.State = RelationshipState.War;
@@ -327,18 +523,18 @@ namespace cdv
                 });
             }
 
-            foreach(var relationship in PlayerRelationships)
+            foreach (var relationship in PlayerRelationships)
             {
-                if(relationship.State == RelationshipState.Alliance && relationship.PartnerId != PlayerOfRequest)
+                if (relationship.State == RelationshipState.Alliance && relationship.PartnerId != PlayerOfRequest)
                 {
                     var ally = NetworkServer.FindLocalObject(relationship.PartnerId).GetComponent<Diplomacy>();
                     ally.RequestWarAssistance(netId, enemyId);
                 }
             }
 
-            foreach(var relationship in enemy.PlayerRelationships)
+            foreach (var relationship in enemy.PlayerRelationships)
             {
-                if(relationship.State == RelationshipState.Alliance)
+                if (relationship.State == RelationshipState.Alliance)
                 {
                     var ally = NetworkServer.FindLocalObject(relationship.PartnerId).GetComponent<Diplomacy>();
                     ally.RequestWarAssistance(enemyId, netId);
@@ -358,9 +554,11 @@ namespace cdv
 #pragma warning restore 618
         {
             Assert.IsTrue(isServer, "Only call RequestPeace on the Server");
+            UpdateGUIForRequest = true;
             ReceivedRequest = true;
             PlayerOfRequest = playerId;
             RequestType = RelationshipState.Peace;
+            Player.LocalPlayer.ProcessGUINextFrame();
         }
 
 #pragma warning disable 618
@@ -368,7 +566,9 @@ namespace cdv
 #pragma warning restore 618
         {
             Assert.IsTrue(isServer, "Only call RequestWarAssistance on server");
+            UpdateGUIForRequest = true;
             ReceivedRequest = true;
+            Player.LocalPlayer.ProcessGUINextFrame();
             ReceivedWarAssistanceRequest = true;
             PlayerOfRequest = allyId;
             Enemy = enemyId;
@@ -379,7 +579,9 @@ namespace cdv
 #pragma warning restore 618
         {
             Assert.IsTrue(isServer, "Only call RequestTradingAgreement on the Server");
+            UpdateGUIForRequest = true;
             ReceivedRequest = true;
+            Player.LocalPlayer.ProcessGUINextFrame();
             PlayerOfRequest = partnerId;
             RequestType = RelationshipState.TradingAgreement;
         }
@@ -388,7 +590,8 @@ namespace cdv
         /// Declines a peace request
         /// </summary>
 #pragma warning disable 618
-        [Command] private void CmdDeclineRequest()
+        [Command]
+        private void CmdDeclineRequest()
 #pragma warning restore 618
         {
             Assert.IsTrue(isServer, "Only run CmdDeclineRequest on the server");
@@ -402,7 +605,8 @@ namespace cdv
         /// Accpets a made peace request
         /// </summary>
 #pragma warning disable 618
-        [Command] private void CmdAcceptRequest(RelationshipState type)
+        [Command]
+        private void CmdAcceptRequest(RelationshipState type)
 #pragma warning restore 618
         {
             Assert.IsTrue(isServer, "Only run CmdAcceptRequest on the server");
@@ -410,7 +614,7 @@ namespace cdv
             var requester = NetworkServer.FindLocalObject(PlayerOfRequest).GetComponent<Diplomacy>();
 #pragma warning restore 618
             int index = requester.PlayerRelationships.Find(netId);
-            if(index != -1)
+            if (index != -1)
             {
                 var relationship = requester.PlayerRelationships[index];
                 relationship.State = type;
@@ -447,7 +651,8 @@ namespace cdv
         /// </summary>
         /// <param name="enemyId">player to send the request to</param>
 #pragma warning disable 618
-        [Command] private void CmdSendPeaceRequest(NetworkInstanceId enemyId)
+        [Command]
+        private void CmdSendPeaceRequest(NetworkInstanceId enemyId)
 #pragma warning restore 618
         {
             Assert.IsTrue(isServer, "Only run CmdSendPeaceRequest on server");
@@ -461,8 +666,9 @@ namespace cdv
         /// Ask another player to have a trading agreement wiht you
         /// </summary>
         /// <param name="partnerId">player to have a trading agreement with</param>
-        #pragma warning disable 618
-        [Command] private void CmdRequestTradingAgreement(NetworkInstanceId partnerId)
+#pragma warning disable 618
+        [Command]
+        private void CmdRequestTradingAgreement(NetworkInstanceId partnerId)
 #pragma warning restore 618
         {
             Assert.IsTrue(isServer, "Only run CmdRequestTradingAgreement on server");
@@ -473,14 +679,15 @@ namespace cdv
         }
 
 #pragma warning disable 618
-        [Command] private void CmdBreakTradingAgreement(NetworkInstanceId partnerId)
+        [Command]
+        private void CmdBreakTradingAgreement(NetworkInstanceId partnerId)
 #pragma warning restore 618
         {
 #pragma warning disable 618
             var partner = NetworkServer.FindLocalObject(partnerId).GetComponent<Diplomacy>();
 #pragma warning restore 618
             int index = partner.PlayerRelationships.Find(netId);
-            if(index != -1)
+            if (index != -1)
             {
                 var relationship = partner.PlayerRelationships[index];
                 relationship.State = RelationshipState.Peace;
@@ -516,14 +723,17 @@ namespace cdv
         public void RequestAlliance(NetworkInstanceId partnerId)
 #pragma warning disable 618
         {
+            UpdateGUIForRequest = true;
             Assert.IsTrue(isServer, "Only call RequestTradingAgreement on the Server");
             ReceivedRequest = true;
+            Player.LocalPlayer.ProcessGUINextFrame();
             PlayerOfRequest = partnerId;
             RequestType = RelationshipState.Alliance;
         }
 
 #pragma warning disable 618
-        [Command] private void CmdRequestAlliance(NetworkInstanceId partnerId)
+        [Command]
+        private void CmdRequestAlliance(NetworkInstanceId partnerId)
 #pragma warning restore 618
         {
             Assert.IsTrue(isServer, "Only run CmdRequestAlliance on server");
@@ -534,14 +744,15 @@ namespace cdv
         }
 
 #pragma warning disable 618
-        [Command] private void CmdBreakAlliance(NetworkInstanceId partnerId)
+        [Command]
+        private void CmdBreakAlliance(NetworkInstanceId partnerId)
 #pragma warning restore 618
         {
 #pragma warning disable 618
             var partner = NetworkServer.FindLocalObject(partnerId).GetComponent<Diplomacy>();
 #pragma warning restore 618
             int index = partner.PlayerRelationships.Find(netId);
-            if(index != -1)
+            if (index != -1)
             {
                 var relationship = partner.PlayerRelationships[index];
                 relationship.State = RelationshipState.Peace;

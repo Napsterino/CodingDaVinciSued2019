@@ -10,6 +10,11 @@ namespace cdv
     {
         public ResourceType Type;
         public int Amount;
+
+        public override string ToString()
+        {
+            return $"{Amount} x {Translationhelper.Get(Type.ToString())}";
+        }
     }
 
 #pragma warning disable 618

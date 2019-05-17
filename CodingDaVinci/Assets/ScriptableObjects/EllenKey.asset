@@ -13,10 +13,9 @@ MonoBehaviour:
   m_Name: EllenKey
   m_EditorClassIdentifier: 
   name: Ellen Key
-  leaderAbility: "Ihr ausgepr\xE4gter Sinn f\xFCr Freiheit und Gerechtigkeit erm\xF6glicht
-    mehr Frauen den Zugang zur Bildung. Allerdings reduziert sich die Wirtschaftsleistung
-    durch ihre Forderung der Platz der Frau ist das Haus und ihre Berufung die Mutterschaft.
-    +2 Technologie +1 Einfluss - 4 Baustoffe Pro Runde"
+  leaderAbility: "Ihr ausgepr\xE4gter Sinn f\xFCr Gerechtigkeit erm\xF6glicht mehr
+    Frauen den Zugang zu Bildung. Allerdings sinkt die Wirtschaftsleistung durch ihre
+    Forderung der Platz der Frau ist das Haus. +2 Technologie +1 Einfluss - 4 Baustoffe"
   artwork: {fileID: 21300000, guid: 99efaf5e43181454bb994b93b819f54c, type: 3}
   className: "Vork\xE4mpferinnen der Frauenrechte"
   playAbility: Mehr Bildung bedeutet mehr Wissen. Und wenn der Nachwuchs dabei nicht

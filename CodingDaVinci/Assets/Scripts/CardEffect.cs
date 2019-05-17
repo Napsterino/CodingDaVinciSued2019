@@ -8,6 +8,17 @@ namespace cdv
     public abstract class CardEffect : MonoBehaviour
     {
         /// <summary>
+        /// Wheter or not the effect will be executed immediately or not
+        /// </summary>
+        public abstract bool IsAsyncron { get; }
+
+        /// <summary>
+        /// Whether or not the effect can be executed in the current gamestate
+        /// </summary>
+        /// <returns>True if the effect can be executed, false otherwise</returns>
+        public abstract bool IsExecutionPossible(Player executer);
+
+        /// <summary>
         /// Executes the effect
         /// </summary>
         /// <param name="owner">player how played the card</param>

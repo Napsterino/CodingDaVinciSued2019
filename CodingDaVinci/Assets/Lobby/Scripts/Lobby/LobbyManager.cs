@@ -81,6 +81,7 @@ namespace Prototype.NetworkLobby
                 //backDelegate = StopGameClbk;
                 topPanel.isInGame = true;
                 topPanel.ToggleVisibility(false);
+                GetComponent<Image>().enabled = false;
             }
         }
 
@@ -105,6 +106,7 @@ namespace Prototype.NetworkLobby
             else
             {
                 backButton.gameObject.SetActive(false);
+                GetComponent<Image>().enabled = true;
             }
         }
 
@@ -113,7 +115,12 @@ namespace Prototype.NetworkLobby
         public void GoBackButton()
         {
             backDelegate();
-			topPanel.isInGame = false;
+            topPanel.isInGame = false;
+        }
+
+        public void QuitButton()
+        {
+            Application.Quit();
         }
 
         // ----------------- Server management
@@ -132,23 +139,26 @@ namespace Prototype.NetworkLobby
         {
             ChangeTo(mainMenuPanel);
         }
-                 
+
         public void StopHostClbk()
         {
             StopHost();
             ChangeTo(mainMenuPanel);
+            GetComponent<Image>().enabled = true;
         }
 
         public void StopClientClbk()
         {
             StopClient();
             ChangeTo(mainMenuPanel);
+            GetComponent<Image>().enabled = true;
         }
 
         public void StopServerClbk()
         {
             StopServer();
             ChangeTo(mainMenuPanel);
+            GetComponent<Image>().enabled = true;
         }
 
         //===================
@@ -168,7 +178,7 @@ namespace Prototype.NetworkLobby
 
             int localPlayerCount = 0;
 #pragma warning disable 618
-            foreach(PlayerController p in ClientScene.localPlayers)
+            foreach (PlayerController p in ClientScene.localPlayers)
 #pragma warning restore 618
                 localPlayerCount += (p == null || p.playerControllerId == -1) ? 0 : 1;
 
@@ -197,7 +207,7 @@ namespace Prototype.NetworkLobby
             base.OnClientConnect(conn);
 
 #pragma warning disable 618
-            if(!NetworkServer.active)
+            if (!NetworkServer.active)
 #pragma warning restore 618
             {//only to do on pure client (not self hosting client)
                 ChangeTo(lobbyPanel);

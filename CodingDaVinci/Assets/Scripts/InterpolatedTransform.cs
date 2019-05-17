@@ -36,8 +36,15 @@ namespace cdv
                     SmoothSpeed * Time.deltaTime);
                 }
 
-                transform.rotation = Quaternion.Slerp(transform.rotation, MostRecentRotation,
+                if(Quaternion.Angle(transform.rotation, MostRecentRotation) > RotationThreshold)
+                {
+                    transform.rotation = MostRecentRotation;
+                }
+                else
+                {
+                    transform.rotation = Quaternion.Slerp(transform.rotation, MostRecentRotation,
                     SmoothSpeed * Time.deltaTime);
+                }
             }
         }
 
@@ -49,13 +56,14 @@ namespace cdv
 
         #region Client Code
         [SerializeField] float SmoothSpeed = 10;
-        [SerializeField] float TeleportThreshold = 0.5f;
+        [SerializeField] float TeleportThreshold = 1;
         #endregion
 
         #region Server Code
         Vector3 PreviousPosition;
         Quaternion PreviousRotation;
         [SerializeField] float Threshold = 0.001f;
+        [SerializeField] float RotationThreshold = 1;
         #endregion
     }
 }

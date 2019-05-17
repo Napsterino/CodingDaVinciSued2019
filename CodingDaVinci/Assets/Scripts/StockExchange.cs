@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Networking;
 
 namespace cdv
@@ -12,6 +13,16 @@ namespace cdv
         public int OfferedAmount;
         public ResourceType RequestedResource;
         public int RequestedAmount;
+
+        public IReadOnlyList<ResourceInfo> RequestedAsResourceInfoList
+        {
+            get
+            {
+                List<ResourceInfo> result = new List<ResourceInfo>();
+                result.Add(new ResourceInfo() { Type = RequestedResource, Amount = RequestedAmount});
+                return result.AsReadOnly();
+            }
+        }
     };
 
 #pragma warning disable 618

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Networking;
@@ -12,33 +12,36 @@ namespace cdv
         Power,
         Count
     }
-
+    
 #pragma warning disable 618
     public sealed class Resources : NetworkBehaviour
 #pragma warning restore 618
     {
-        #region Server Code
+#region Server Code
 #pragma warning disable 618
-        [Command] private void CmdAddConstructionMaterial(int amount)
+        [Command]
+            private void CmdAddConstructionMaterial(int amount)
 #pragma warning restore 618
         {
             ConstructionMaterial += amount;
         }
-
+        
 #pragma warning disable 618
-        [Command] private void CmdAddTechnology(int amount)
+        [Command]
+            private void CmdAddTechnology(int amount)
 #pragma warning restore 618
         {
             Technology += amount;
         }
-
+        
 #pragma warning disable 618
-        [Command] private void CmdAddPower(int amount)
+        [Command]
+            private void CmdAddPower(int amount)
 #pragma warning restore 618
         {
             Power += amount;
         }
-
+        
         /// <summary>
         /// Applies all the resources a player gets per round to the current resources
         /// </summary>
@@ -48,11 +51,11 @@ namespace cdv
             Power += PowerPerRound;
             Technology += TechnologyPerRound;
         }
-
+        
         public void AddConstructionMaterial(int amount, bool permanent)
         {
             Assert.IsTrue(isServer, "Only call AddConstructionMaterial on Server");
-            if(permanent)
+            if (permanent)
             {
                 ConstructionMaterialPerRound += amount;
             }
@@ -61,11 +64,11 @@ namespace cdv
                 ConstructionMaterial += amount;
             }
         }
-
+        
         public void AddPower(int amount, bool permanent)
         {
             Assert.IsTrue(isServer, "Only call AddPower on Server");
-            if(permanent)
+            if (permanent)
             {
                 PowerPerRound += amount;
             }
@@ -74,11 +77,11 @@ namespace cdv
                 Power += amount;
             }
         }
-
+        
         public void AddTechnology(int amount, bool permanent)
         {
             Assert.IsTrue(isServer, "Only call AddTechnology on Server");
-            if(permanent)
+            if (permanent)
             {
                 TechnologyPerRound += amount;
             }
@@ -87,27 +90,27 @@ namespace cdv
                 Technology += amount;
             }
         }
-        #endregion
-
-        #region Shared Code
+#endregion
+        
+#region Shared Code
         public void AddResources(ResourceInfo[] resources)
         {
-            foreach(var resource in resources)
+            foreach (var resource in resources)
             {
-                switch(resource.Type)
+                switch (resource.Type)
                 {
                     case ResourceType.ConstructionMaterial:
                     {
                         ConstructionMaterial += resource.Amount;
                         break;
                     }
-
+                    
                     case ResourceType.Power:
                     {
                         Power += resource.Amount;
                         break;
                     }
-
+                    
                     case ResourceType.Technology:
                     {
                         Technology += resource.Amount;
@@ -116,64 +119,64 @@ namespace cdv
                 }
             }
         }
-
+        
         public void ApplyConstructionCosts(IReadOnlyCollection<ResourceInfo> costs,
-            int technologyCostReduction)
+                                           int technologyCostReduction)
         {
-            foreach(var cost in costs)
+            foreach (var cost in costs)
             {
-                switch(cost.Type)
+                switch (cost.Type)
                 {
                     case ResourceType.ConstructionMaterial:
                     {
                         ConstructionMaterial -= cost.Amount;
                         break;
                     }
-
+                    
                     case ResourceType.Power:
                     {
                         Power -= cost.Amount;
                         break;
                     }
-
+                    
                     case ResourceType.Technology:
                     {
                         int amount = Mathf.Clamp(cost.Amount - technologyCostReduction, 0,
-                            cost.Amount);
+                                                 cost.Amount);
                         Technology -= amount;
                         break;
                     }
                 }
             }
         }
-
+        
         public bool HasResources(IReadOnlyCollection<ResourceInfo> costs)
         {
-            foreach(var cost in costs)
+            foreach (var cost in costs)
             {
-                switch(cost.Type)
+                switch (cost.Type)
                 {
                     case ResourceType.ConstructionMaterial:
                     {
-                        if(ConstructionMaterial < cost.Amount)
+                        if (ConstructionMaterial < cost.Amount)
                         {
                             return false;
                         }
                         break;
                     }
-
+                    
                     case ResourceType.Power:
                     {
-                        if(Power < cost.Amount)
+                        if (Power < cost.Amount)
                         {
                             return false;
                         }
                         break;
                     }
-
+                    
                     case ResourceType.Technology:
                     {
-                        if(Technology < cost.Amount)
+                        if (Technology < cost.Amount)
                         {
                             return false;
                         }
@@ -181,29 +184,78 @@ namespace cdv
                     }
                 }
             }
-
+            
             return true;
         }
-
+        
+        public bool HasResources(ResourceInfo cost)
+        {
+            switch (cost.Type)
+            {
+                case ResourceType.ConstructionMaterial:
+                {
+                    if (ConstructionMaterial < cost.Amount)
+                    {
+                        return false;
+                    }
+                    break;
+                }
+                
+                case ResourceType.Power:
+                {
+                    if (Power < cost.Amount)
+                    {
+                        return false;
+                    }
+                    break;
+                }
+                
+                case ResourceType.Technology:
+                {
+                    if (Technology < cost.Amount)
+                    {
+                        return false;
+                    }
+                    break;
+                }
+            }
+            
+            return true;
+        }
+        
         private void Update()
         {
-            if(isLocalPlayer)
+            if (isLocalPlayer)
             {
-                if(Input.GetKeyDown(KeyCode.UpArrow))
+                if (Input.GetKeyDown(KeyCode.UpArrow))
                 {
                     CmdAddConstructionMaterial(1);
                 }
-                if(Input.GetKeyDown(KeyCode.RightArrow))
+                if (Input.GetKeyDown(KeyCode.RightArrow))
                 {
                     CmdAddTechnology(1);
                 }
-                if(Input.GetKeyDown(KeyCode.LeftArrow))
+                if (Input.GetKeyDown(KeyCode.LeftArrow))
                 {
                     CmdAddPower(1);
                 }
             }
         }
-
+        
+        public void UpdateEffects()
+        {
+            if(GetConstructionPointsThisRound)
+            {
+                ConstructionMaterial += ConstructionMaterialOrTechnologyPoints;
+            }
+            else
+            {
+                Technology += ConstructionMaterialOrTechnologyPoints;
+            }
+            GetConstructionPointsThisRound = !GetConstructionPointsThisRound;
+        }
+        
+#if !NEW_GUI
         private void OnGUI()
         {
             if(isLocalPlayer)
@@ -215,13 +267,14 @@ namespace cdv
                 GUILayout.EndArea();
             }
         }
-
+#endif
+        
         public int ConstructionMaterial
         {
             get => m_ConstructionMaterial;
             set
             {
-                if(value < 0)
+                if (value < 0)
                 {
                     m_ConstructionMaterial = 0;
                 }
@@ -231,13 +284,13 @@ namespace cdv
                 }
             }
         }
-
+        
         public int Power
         {
             get => m_Power;
             set
             {
-                if(value < 0)
+                if (value < 0)
                 {
                     m_Power = 0;
                 }
@@ -247,13 +300,13 @@ namespace cdv
                 }
             }
         }
-
+        
         public int Technology
         {
             get => m_Technology;
             set
             {
-                if(value < 0)
+                if (value < 0)
                 {
                     m_Technology = 0;
                 }
@@ -263,7 +316,7 @@ namespace cdv
                 }
             }
         }
-
+        
 #pragma warning disable 618
         [SyncVar] private int m_ConstructionMaterial = 0;
         [SyncVar] private int m_Technology = 0;
@@ -271,7 +324,9 @@ namespace cdv
         [SyncVar] int ConstructionMaterialPerRound;
         [SyncVar] int PowerPerRound;
         [SyncVar] int TechnologyPerRound;
+        [SyncVar] public int ConstructionMaterialOrTechnologyPoints = 0;
+        [SyncVar] bool GetConstructionPointsThisRound = true;
 #pragma warning restore 618
-        #endregion
+#endregion
     }
 }

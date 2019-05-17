@@ -4,6 +4,13 @@ namespace cdv
 {
     public sealed class GetVictoryPointsForBuilding : CardEffect
     {
+        public override bool IsAsyncron => false;
+
+        public override bool IsExecutionPossible(Player executer)
+        {
+            return true;
+        }
+
         public override void Execute(Player owner)
         {
             int amount = 0;

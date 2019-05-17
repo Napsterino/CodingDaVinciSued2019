@@ -340,7 +340,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.13333334, g: 0.17254902, b: 0.21568628, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -422,7 +422,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 0}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -599,10 +599,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 0, b: 0.39607847, a: 1}
-    m_HighlightedColor: {r: 1, g: 0, b: 0.39607847, a: 1}
-    m_PressedColor: {r: 1, g: 0, b: 0.39607847, a: 1}
-    m_DisabledColor: {r: 1, g: 0, b: 0.39607847, a: 0.5019608}
+    m_NormalColor: {r: 0.16078432, g: 0.454902, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.3372549, g: 0.5686275, b: 1, a: 1}
+    m_PressedColor: {r: 0.10980392, g: 0.30588236, b: 0.67058825, a: 1}
+    m_DisabledColor: {r: 0.16078432, g: 0.454902, b: 1, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.2
   m_SpriteState:
@@ -644,7 +644,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 32d4b1811dda14a6cb9e059ee8ad17d2, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1258,8 +1258,12 @@ MonoBehaviour:
   remoteIcone: {fileID: 189178}
   playerName: 
   playerColor: {r: 1, g: 1, b: 1, a: 1}
-  OddRowColor: {r: 0.98039216, g: 0.98039216, b: 0.98039216, a: 1}
+  OddRowColor: {r: 0.24528301, g: 0.24528301, b: 0.24528301, a: 1}
   EvenRowColor: {r: 0.7058824, g: 0.7058824, b: 0.7058824, a: 1}
+  JoinColor: {r: 0.16078432, g: 0.454902, b: 1, a: 1}
+  NotReadyColor: {r: 0.06647952, g: 0.18519299, b: 0.406, a: 1}
+  ReadyColor: {r: 0.08013326, g: 0.601, b: 0, a: 1}
+  TransparentColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &159926
 GameObject:
   m_ObjectHideFlags: 0
@@ -1318,7 +1322,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.13333334, g: 0.17254902, b: 0.21568628, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -1509,9 +1513,9 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 0, b: 0.39607847, a: 1}
-    m_HighlightedColor: {r: 1, g: 0, b: 0.39607847, a: 1}
-    m_PressedColor: {r: 1, g: 0, b: 0.39607847, a: 1}
+    m_NormalColor: {r: 0.825, g: 0.14437501, b: 0.17313737, a: 1}
+    m_HighlightedColor: {r: 0.8235295, g: 0.14509805, b: 0.17254902, a: 1}
+    m_PressedColor: {r: 0.8235295, g: 0.14509805, b: 0.17254902, a: 1}
     m_DisabledColor: {r: 0.63235295, g: 0.61375433, b: 0.61375433, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.2

@@ -7,6 +7,13 @@ namespace cdv
     /// </summary>
     public sealed class AddVictoryPointEffect : CardEffect
     {
+        public override bool IsAsyncron => false;
+
+        public override bool IsExecutionPossible(Player executer)
+        {
+            return true;
+        }
+
         /// <summary>
         /// Implementation of <see cref="CardEffect.Execute(Player)"/>
         /// </summary>

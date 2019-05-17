@@ -1,60 +1,35 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace cdv
 {
-    public sealed class ConquerRegionAndBuildBuildingEffect : CardEffect
+    public sealed class ConquerRegionAndBuildBuildingEffect : ConquerRegionEffect
     {
-        public override void Execute(Player owner)
+        public override bool IsAsyncron => true;
+        
+        public override bool IsExecutionPossible(Player executor)
         {
-            // TODO: Check here if certain Requirements can not be fulfilled.
-            // If that is the case do not play the card at all
-            foreach(var element in Requirements)
+            var allRegions = FindObjectsOfType<Region>();
+            foreach(var region in allRegions)
             {
-                switch(element)
+                if(FulfillsRegionRequirements(region, Requirements, executor) &&
+                   region.Building == null)
                 {
-                    case ConquerRequirement.MustBeOccupiedByOtherPlayer:
-                    {
-                        bool regionAvailable = false;
-                        foreach(var player in owner.GameManager.Players)
-                        {
-                            if(player != owner)
-                            {
-                                foreach(var region in player.OwnedRegions.Values)
-                                {
-                                    if(!region.IsStartRegion())
-                                    {
-                                        regionAvailable = true;
-                                        break;
-                                    }
-                                }
-
-                                if(regionAvailable)
-                                {
-                                    break;
-                                }
-                            }
-                        }
-
-                        if(!regionAvailable)
-                        {
-                            return;
-                        }
-
-                        break;
-                    }
+                    return true;
                 }
             }
-
-            owner.State = PlayerState.ConquerRegion;
-            owner.RegionGetsAddedToPlayer = true;
-            owner.BuildingsToBuild.Add(Building);
-            owner.ConquerRequirements = new ConquerRequirements
-            {
-                Requirements = Requirements
-            };
+            
+            return false;
         }
-
-        [SerializeField] ConquerRequirement[] Requirements;
+        
+        public override void Execute(Player owner)
+        {
+            if(IsExecutionPossible(owner))
+            {
+                SetPlayerToConquerRegion(owner);
+                owner.BuildingsToBuild.Add(Building);
+            }
+        }
+        
         [SerializeField] string Building;
     }
 }

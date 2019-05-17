@@ -43,10 +43,12 @@ namespace cdv
         [SerializeField] private Text leaderAbility;
         [SerializeField] private Text playAbility;
         [SerializeField] private Image artwork;
+#pragma warning disable 618
         [SyncVar] public bool IsHoverd;
         [SyncVar] public bool IsMoving;
         [SyncVar] Vector3 TargetPosition;
         [SyncVar] public Vector3 OldPosition;
+#pragma warning restore 618
 
         void Start()
         {
