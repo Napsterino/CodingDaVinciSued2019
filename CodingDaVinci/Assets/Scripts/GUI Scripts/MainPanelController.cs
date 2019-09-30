@@ -10,7 +10,6 @@ namespace cdv
         public Button Diplomacy;
         public Button Trading;
         public Button Buildings;
-        public Button TechnolodgyCard;
         public Button EndTurn;
 
         public void Show()

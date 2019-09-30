@@ -35,6 +35,11 @@ namespace cdv
         {
             public VictoryPointCategory Category;
             public int Amount;
+
+            public override string ToString()
+            {
+                return $"{Amount} x {Translationhelper.Get(Category.ToString())}";
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Card
   - Region
+  - TechnologyCardStack
   layers:
   - Default
   - TransparentFX

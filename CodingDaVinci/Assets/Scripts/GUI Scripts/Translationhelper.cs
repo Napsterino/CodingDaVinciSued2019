@@ -13,6 +13,11 @@ namespace cdv
             translations.Add(ResourceType.ConstructionMaterial.ToString(), "Baumaterial");
             translations.Add(ResourceType.Technology.ToString(), "Technologie");
             translations.Add(ResourceType.Power.ToString(), "Einfluss");
+            translations.Add(VictoryPointCategory.Culture.ToString(), "Kultur");
+            translations.Add(VictoryPointCategory.Economy.ToString(), "Wirtschaft");
+            translations.Add(VictoryPointCategory.Science.ToString(), "Wissenschaft");
+            translations.Add(VictoryPointCategory.Territory.ToString(), "Gebietsgröße");
+            translations.Add(VictoryPointCategory.WinPoint.ToString(), "Allgemein");
         }
 
         public static string Get(string key)

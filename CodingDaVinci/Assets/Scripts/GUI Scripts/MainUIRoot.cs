@@ -141,6 +141,8 @@ namespace cdv
         {
             HideAll();
             Player.LocalPlayer.ProcessGUINextFrame();
+            Player.LocalPlayer.SelectedRegion?.Deselect();
+            Player.LocalPlayer.SelectedRegion = null;
             Player.LocalPlayer.CmdEndTurn();
         }
 

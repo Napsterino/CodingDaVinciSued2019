@@ -23,6 +23,19 @@ namespace cdv
 
         #region Client Code
         /// <summary>
+        /// Deselects the currently selected region
+        /// </summary>
+        public void Deselect()
+        {
+            SelectedRegionMask.color = Color.clear;
+        }
+
+        public void Select(Color color)
+        {
+            SelectedRegionMask.color = color;
+        }
+
+        /// <summary>
         /// Sets the owner of the region
         /// </summary>
         /// <param name="ownerId">id of the owner</param>
@@ -58,6 +71,11 @@ namespace cdv
             Building = ClientScene.FindLocalObject(buildingId).GetComponent<Building>();
 #pragma warning restore 618
         }
+
+        /// <summary>
+        /// Mask of that displays the selection mask if the region is selected
+        /// </summary>
+        [SerializeField] SpriteRenderer SelectedRegionMask;
         #endregion
 
         public bool FulFillsRequirements(RegionProperty[] requirements)

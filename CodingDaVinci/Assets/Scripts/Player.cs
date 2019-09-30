@@ -127,7 +127,10 @@ namespace cdv
             LeaderCards.Add(card);
         }
 
-        private Region SelectedRegion = null;
+        /// <summary>
+        /// Currently selected region
+        /// </summary>
+        public Region SelectedRegion = null;
         #endregion
 
         #region Shared Code
@@ -231,6 +234,9 @@ namespace cdv
                                                                                           CmdBuildBuilding(BuildingsToBuild[0], SelectedRegion.netId, true);
                                                                                           CmdRemoveBuildingFromBuildList();
                                                                                           ProcessGUINextFrame();
+                                                                                          BuildingToBuild = null;
+                                                                                          MainUIRoot.Instance.ContextMenu.HideContextMenu();
+
                                                                                       });
                                 }
                             }
@@ -290,19 +296,30 @@ namespace cdv
                                 }
                                 if ((BuildingToBuild != null && BuildingToBuild != "")
                                     && OwnedRegions.ContainsValue(SelectedRegion)
-                                    && SelectedRegion.Building == null
-                                    && SelectedRegion.FulFillsRequirements(GameManager.GetBuilding(BuildingToBuild).ConstructionRequirements))
+                                    && SelectedRegion.Building == null)
                                 {
-                                    var building = GameManager.GetBuilding(BuildingToBuild);
-                                    label += $"\n{building.name}";
-                                    MainUIRoot.Instance.ContextMenu.UpdateContextMenu("Bauen", label, () =>
-                                                                                      {
-                                                                                          if (Resources.HasResources(building.ConstructionCosts))
-                                                                                          {
-                                                                                              CmdBuildBuilding(BuildingToBuild, SelectedRegion.netId, false);
-                                                                                          }
-                                                                                          ProcessGUINextFrame();
-                                                                                      });
+                                    if(SelectedRegion.FulFillsRequirements(GameManager.GetBuilding(BuildingToBuild).ConstructionRequirements))
+                                    {
+                                        var building = GameManager.GetBuilding(BuildingToBuild);
+                                        label += $"\n{building.name}";
+                                        MainUIRoot.Instance.ContextMenu.UpdateContextMenu("Bauen", label, () =>
+                                        {
+                                            if(Resources.HasResources(building.ConstructionCosts))
+                                            {
+                                                CmdBuildBuilding(BuildingToBuild, SelectedRegion.netId, false);
+                                            }
+                                            BuildingToBuild = null;
+                                            MainUIRoot.Instance.ContextMenu.HideContextMenu();
+                                            ProcessGUINextFrame();
+                                        });
+                                    }
+                                    else
+                                    {
+                                        var building = GameManager.GetBuilding(BuildingToBuild);
+                                        label += $"\n{building.name}";
+                                        MainUIRoot.Instance.ContextMenu.UpdateContextMenu("Bauen", label, null);
+                                    }
+
                                 }
                             }
 
@@ -637,6 +654,8 @@ namespace cdv
         }
 #endif
 
+        NetworkInstanceId HighlightedCard = NetworkInstanceId.Invalid;
+
         private void Update()
         {
             if (isLocalPlayer)
@@ -656,6 +675,39 @@ namespace cdv
                 {
                     RpcProcessAllGUIs();
                 }
+
+                {
+                    var mouse = new Vector3();
+                    mouse.x = Input.mousePosition.x;
+                    mouse.y = Input.mousePosition.y;
+                    mouse.z = Camera.main.nearClipPlane;
+                    mouse = Camera.main.ScreenToWorldPoint(mouse);
+                    Vector3 cameraPosition = Camera.main.transform.position;
+                    if(Physics.Raycast(cameraPosition, mouse - cameraPosition, out RaycastHit hit))
+                    {
+                        if(hit.collider.CompareTag("Card") && HandCards.Contains(hit.collider.GetComponent<CardDisplay>().netId))
+                        {
+                            if(HighlightedCard != hit.collider.GetComponent<CardDisplay>().netId)
+                            {
+                                if(HighlightedCard != NetworkInstanceId.Invalid)
+                                {
+                                    CmdUnHighlightCard(HighlightedCard);
+                                }
+                                CmdHighlightCard(hit.collider.GetComponent<CardDisplay>().netId);
+                                HighlightedCard = hit.collider.GetComponent<CardDisplay>().netId;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(HighlightedCard != NetworkInstanceId.Invalid)
+                        {
+                            CmdUnHighlightCard(HighlightedCard);
+                            HighlightedCard = NetworkInstanceId.Invalid;
+                        }
+                    }
+                }
+
                 {
                     var (success, hit) = MakeHitCheck(RIGHT_MOUSEBUTTON);
                     if(success)
@@ -678,7 +730,6 @@ namespace cdv
                             }
                         }
                     }
-
                 }
 
                 switch (State)
@@ -718,6 +769,7 @@ namespace cdv
                                                 {
                                                     if (region.HasSeaAccess())
                                                     {
+                                                        SelectedRegion?.Deselect();
                                                         SelectedRegion = null;
                                                         return;
                                                     }
@@ -728,6 +780,7 @@ namespace cdv
                                                 {
                                                     if (!region.HasSeaAccess())
                                                     {
+                                                        SelectedRegion?.Deselect();
                                                         SelectedRegion = null;
                                                         return;
                                                     }
@@ -740,6 +793,7 @@ namespace cdv
                                                     {
                                                         if (neighbour.Owner != null)
                                                         {
+                                                            SelectedRegion?.Deselect();
                                                             SelectedRegion = null;
                                                             return;
                                                         }
@@ -751,6 +805,7 @@ namespace cdv
                                                 {
                                                     if (region.Owner != null)
                                                     {
+                                                        SelectedRegion?.Deselect();
                                                         SelectedRegion = null;
                                                         return;
                                                     }
@@ -761,6 +816,7 @@ namespace cdv
                                                 {
                                                     if (region.Owner == null || region.Owner == this || region.IsStartRegion())
                                                     {
+                                                        SelectedRegion?.Deselect();
                                                         SelectedRegion = null;
                                                         return;
                                                     }
@@ -776,7 +832,9 @@ namespace cdv
                                         }
                                     }
 
+                                    SelectedRegion?.Deselect();
                                     SelectedRegion = region;
+                                    SelectedRegion.Select(PlayerColor);
                                 }
                             }
                             break;
@@ -827,7 +885,13 @@ namespace cdv
                                 }
                                 else if (hit.collider.CompareTag("Region"))
                                 {
+                                    SelectedRegion?.Deselect();
                                     SelectedRegion = hit.collider.GetComponent<Region>();
+                                    SelectedRegion.Select(PlayerColor);
+                                }
+                                else if(hit.collider.CompareTag("TechnologyCardStack"))
+                                {
+                                    TryBuyTechnologyCard();
                                 }
                             }
                         break;
@@ -838,7 +902,9 @@ namespace cdv
                             var (success, hit) = MakeHitCheck(LEFT_MOUSEBUTTON);
                             if (success && hit.collider.CompareTag("Region"))
                             {
+                                SelectedRegion?.Deselect();
                                 SelectedRegion = hit.collider.GetComponent<Region>();
+                                SelectedRegion.Select(PlayerColor);
                             }
                             break;
                         }
@@ -1368,6 +1434,22 @@ namespace cdv
         }
 
 #pragma warning disable 618
+        [Command] void CmdUnHighlightCard(NetworkInstanceId cardId)
+        {
+            var cardGO = NetworkServer.FindLocalObject(cardId);
+            cardGO.transform.Translate(0, -1, 0);
+        }
+#pragma warning restore 618
+
+#pragma warning disable 618
+        [Command] void CmdHighlightCard(NetworkInstanceId card)
+#pragma warning restore 618
+        {
+            var cardDisplay = NetworkServer.FindLocalObject(card).GetComponent<CardDisplay>();
+            cardDisplay.transform.Translate(0, 1, 0);
+        }
+
+#pragma warning disable 618
         [Command]
         private void CmdPlayCard(NetworkInstanceId cardId)
 #pragma warning restore 618
@@ -1641,14 +1723,15 @@ namespace cdv
 
 #pragma warning disable 618
         public void SendWinner(NetworkInstanceId winner)
-#pragma warning restore 618
         {
             if (isServer)
             {
                 IsGameOver = true;
-                GameOverWinnerLabel = $"Game is over ID: {winner.Value} won!";
+                var player = NetworkServer.FindLocalObject(winner).GetComponent<Player>();
+                GameOverWinnerLabel = $"Game is over ID: {player.PlayerName} won!";
             }
         }
+#pragma warning restore 618
 
 #pragma warning disable 618
         public void SendTie(NetworkInstanceId[] winners)
